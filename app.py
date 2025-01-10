@@ -1,5 +1,6 @@
 import streamlit as st
-from utils.get_data import get_history, build_history_df
+import datetime as dt
+from utils.get_data import get_history, build_history_df, get_weather
 
 
 ENTITY_IDS = {
@@ -23,7 +24,13 @@ def welcome_page():
         for entity_id, prefix in ENTITY_IDS.items():
             data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
             df = build_history_df(data, is_sensor=(prefix == 'sensor'))
-            df.to_csv(f"data/{entity_id}.csv", index=False)   
+            df.to_csv(f"data/{entity_id}.csv", index=False)
+    
+    button = st.button("get weather")
+    if button:
+        weather_df = get_weather()
+        day = dt.datetime.now().strftime('%Y-%m-%d')
+        weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
 
 
 if __name__=="__main__":

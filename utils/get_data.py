@@ -82,3 +82,25 @@ def parse_data_string(data_string: str) -> dict:
         return json.loads(data_string)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string: {e}")
+
+from pymeteosource.api import Meteosource
+from pymeteosource.types import tiers,sections
+
+def get_weather():
+    YOUR_API_KEY = st.secrets["API_WEATHER"]
+    YOUR_TIER = tiers.FREE
+    meteosource = Meteosource(YOUR_API_KEY, YOUR_TIER)
+
+    # Get the forecast for a given point
+    forecast = meteosource.get_point_forecast(
+        lat=48.864716,  # Latitude of the point
+        lon=2.349014,  # Longitude of the point
+        place_id=None,  # You can specify place_id instead of lat+lon
+        sections=[sections.CURRENT, sections.HOURLY],  # Defaults to '("current", "hourly")'      
+    )
+    # st.markdown(forecast)
+    forecast.hourly[0]['temperature']
+    df = forecast.hourly.to_pandas()
+    # st.dataframe(df)
+    return df
+   

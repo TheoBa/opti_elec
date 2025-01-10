@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 streamlit = "^1.40.2"
 requests = "^2.32.3"
+pymeteosource = "^1.7.0"
 
 
 [build-system]
