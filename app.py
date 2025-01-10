@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.get_data import get_data, parse_data_string, build_df
+from utils.get_data import get_history, build_history_df
 import pandas as pd
 import datetime as dt
 
@@ -23,8 +23,8 @@ def welcome_page():
     button = st.button("get data")
     if button:
         for entity_id, prefix in ENTITY_IDS.items():
-            data = get_data(entity_id, is_sensor=(prefix == 'sensor'))
-            st.dataframe(build_df(data, prefix))
+            data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
+            st.dataframe(build_history_df(data, is_sensor=(prefix == 'sensor')))
 
 
 if __name__=="__main__":
