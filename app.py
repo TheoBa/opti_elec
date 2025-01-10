@@ -1,7 +1,5 @@
 import streamlit as st
 from utils.get_data import get_history, build_history_df
-import pandas as pd
-import datetime as dt
 
 
 ENTITY_IDS = {
@@ -24,7 +22,8 @@ def welcome_page():
     if button:
         for entity_id, prefix in ENTITY_IDS.items():
             data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
-            st.dataframe(build_history_df(data, is_sensor=(prefix == 'sensor')))
+            df = build_history_df(data, is_sensor=(prefix == 'sensor'))
+            df.to_csv(f"data/{entity_id}.csv", index=False)   
 
 
 if __name__=="__main__":

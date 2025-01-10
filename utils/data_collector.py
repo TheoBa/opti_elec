@@ -2,7 +2,7 @@ import time
 import pandas as pd
 from datetime import datetime
 import os
-from get_data import get_data, parse_data_string
+from utils.get_data import get_data, parse_data_string, get_history, build_history_df
 
 ENTITY_IDS = {
     "capteur_chambre_temperature": "sensor",
@@ -10,6 +10,15 @@ ENTITY_IDS = {
     "paris_17eme_arrondissement_temperature": "sensor",
     "radiateur_bureau_switch": "input_boolean"
     }
+
+ 
+def collect_and_store_history():
+    for entity_id, prefix in ENTITY_IDS.items():
+        data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
+        df = build_history_df(data, is_sensor=(prefix == 'sensor'))
+        df.to_csv(f"data/{entity_id}.csv", index=False)
+
+
 
 def collect_and_store_data():
     # Create data directory if it doesn't exist
@@ -41,17 +50,3 @@ def collect_and_store_data():
             new_row.to_csv(csv_path, mode='a', header=False, index=False)
         else:
             new_row.to_csv(csv_path, index=False)
-
-def main():
-    while True:
-        try:
-            collect_and_store_data()
-            print(f"Data collected at {datetime.now()}")
-        except Exception as e:
-            print(f"Error collecting data: {e}")
-        
-        # Wait for 10 minutes
-        time.sleep(600)
-
-if __name__ == "__main__":
-    main() 
