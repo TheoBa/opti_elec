@@ -2,15 +2,11 @@ import streamlit as st
 import datetime as dt
 from utils.get_data import get_history, build_history_df, get_weather
 from utils.display import display_time_series
+from utils.inertie_thermique import ClientModule
 
 
-ENTITY_IDS = {
-    "capteur_chambre_temperature": "sensor",
-    "capteur_salon_temperature": "sensor",
-    "paris_17eme_arrondissement_temperature": "sensor",
-    "radiateur_bureau_switch": "input_boolean"
-}
 ENTITY_IDS = [
+    "sensor.capteur_chambre_temperature",
     "sensor.capteur_salon_temperature",
     "sensor.paris_17eme_arrondissement_temperature",
     "input_boolean.radiateur_bureau_switch"
