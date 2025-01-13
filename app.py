@@ -20,6 +20,21 @@ st.set_page_config(
 )
 
 def welcome_page():
+    maison_caussa = ClientModule()
+    maison_caussa.init(
+        name="maison_caussa",
+        temperature_interieur_id="sensor.capteur_salon_temperature",
+        temperature_exterieur_id="sensor.paris_17eme_arrondissement_temperature",
+        switch_id="input_boolean.radiateur_bureau_switch",
+        days_delta=100
+        )
+    button = st.button("update_db")
+    if button:
+        maison_caussa.update_db()
+    maison_caussa.load_df()
+    df = maison_caussa.identify_switch_offs()
+    st.dataframe(df)
+
     with st.form("Reload database"):
         days_delta = st.number_input("Delta days for DB history", value=1)
         submitted = st.form_submit_button("Reload DB")
