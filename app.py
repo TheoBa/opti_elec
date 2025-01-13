@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime as dt
 from utils.get_data import get_history, build_history_df, get_weather
+from utils.display import display_time_series
 
 
 ENTITY_IDS = {
@@ -15,8 +16,8 @@ st.set_page_config(
     page_icon='😎', 
     layout="wide", 
     initial_sidebar_state="collapsed"
-    )
- 
+)
+
 def welcome_page():
     st.markdown("""# PoC OptiElec""")
     button = st.button("get data")
@@ -31,6 +32,9 @@ def welcome_page():
         weather_df = get_weather()
         day = dt.datetime.now().strftime('%Y-%m-%d')
         weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
+
+    # Display time series plots
+    display_time_series()
 
 
 if __name__=="__main__":
