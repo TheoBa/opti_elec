@@ -1,0 +1,25 @@
+cloud_cover_total,icon,precipitation_total,precipitation_type,summary,temperature,weather,wind_angle,wind_dir,wind_speed
+14.0,27,0.0,none,Mostly clear,1.5,mostly_clear,108,ESE,1.7
+24.0,28,0.0,none,Partly clear,1.0,partly_clear,72,ENE,1.7
+27.0,28,0.0,none,Partly clear,1.0,partly_clear,66,ENE,1.5
+15.0,27,0.0,none,Mostly clear,0.8,mostly_clear,54,NE,1.6
+66.0,9,0.0,none,Fog,0.5,fog,57,ENE,1.5
+99.0,7,0.0,none,Overcast,0.0,overcast,47,NE,1.8
+100.0,9,0.0,none,Fog,0.0,fog,53,NE,1.7
+100.0,9,0.0,none,Fog,-0.8,fog,49,NE,1.7
+100.0,9,0.0,none,Fog,-0.5,fog,46,NE,1.7
+100.0,7,0.0,none,Overcast,-0.2,overcast,49,NE,1.7
+100.0,7,0.0,none,Overcast,-0.5,overcast,33,NNE,1.7
+100.0,7,0.0,none,Overcast,-0.8,overcast,26,NNE,1.8
+100.0,7,0.0,none,Overcast,-1.2,overcast,21,NNE,1.9
+100.0,7,0.0,none,Overcast,-0.8,overcast,22,NNE,2.2
+92.0,7,0.0,none,Overcast,-0.2,overcast,26,NNE,2.5
+71.0,5,0.0,none,Mostly cloudy,0.5,mostly_cloudy,24,NNE,2.7
+62.0,4,0.0,none,Partly sunny,1.0,partly_sunny,29,NNE,2.7
+40.0,4,0.0,none,Partly sunny,1.8,partly_sunny,18,NNE,2.6
+32.0,4,0.0,none,Partly sunny,2.0,partly_sunny,8,N,2.6
+0.0,2,0.0,none,Sunny,2.2,sunny,356,N,2.9
+20.0,4,0.0,none,Partly sunny,1.8,partly_sunny,352,N,2.7
+42.0,28,0.0,none,Partly clear,0.2,partly_clear,345,NNW,2.3
+76.0,29,0.0,none,Mostly cloudy,0.0,mostly_cloudy,354,N,2.2
+81.0,30,0.0,none,Cloudy,0.2,cloudy,356,N,1.8

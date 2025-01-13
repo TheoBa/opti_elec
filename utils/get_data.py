@@ -17,6 +17,38 @@ def get_data(entity_id="", is_sensor=True):
     response = requests.request("GET", url, headers=headers)
     return response.text
 
+def get_history(entity_id="", is_sensor=True):
+    start_time = dt.datetime.now() - dt.timedelta(days=1)
+    end_time = dt.datetime.now()
+    start_date = start_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
+    end_date = "?end_time=" + end_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
+    if is_sensor:
+        entity_id = "sensor." + entity_id
+    else:
+        entity_id = "input_boolean." + entity_id
+    entity_id_query = "&filter_entity_id=" + entity_id + "&minimal_response"
+
+    url = f"https://17blacroix.duckdns.org:8123/api/history/period/{start_date}{end_date}{entity_id_query}"
+
+    TOKEN = st.secrets["API_TOKEN"]
+    headers = {
+        "Authorization": f"Bearer " + TOKEN
+    }
+    response = requests.request("GET", url, headers=headers)
+    return parse_data_string(response.text)[0][1:]
+
+def build_history_df(inputs, is_sensor):
+    if is_sensor:
+        column_names = {"state": "temperature", "last_changed": "date"}
+    else:
+        column_names = {"last_changed": "date"}
+    df = (
+        pd.DataFrame.from_dict(inputs)
+        .rename(columns=column_names)
+        .assign(date=lambda df: pd.to_datetime(df["date"]))
+        )
+    return df
+
 def build_df(data, prefix):
     parsed_data = parse_data_string(data)
     data_id = parsed_data["entity_id"]
@@ -50,3 +82,25 @@ def parse_data_string(data_string: str) -> dict:
         return json.loads(data_string)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string: {e}")
+
+from pymeteosource.api import Meteosource
+from pymeteosource.types import tiers,sections
+
+def get_weather():
+    YOUR_API_KEY = st.secrets["API_WEATHER"]
+    YOUR_TIER = tiers.FREE
+    meteosource = Meteosource(YOUR_API_KEY, YOUR_TIER)
+
+    # Get the forecast for a given point
+    forecast = meteosource.get_point_forecast(
+        lat=48.864716,  # Latitude of the point
+        lon=2.349014,  # Longitude of the point
+        place_id=None,  # You can specify place_id instead of lat+lon
+        sections=[sections.CURRENT, sections.HOURLY],  # Defaults to '("current", "hourly")'      
+    )
+    # st.markdown(forecast)
+    forecast.hourly[0]['temperature']
+    df = forecast.hourly.to_pandas()
+    # st.dataframe(df)
+    return df
+   

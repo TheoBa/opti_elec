@@ -813,6 +813,24 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pymeteosource"
+version = "1.7.0"
+description = "Meteosource API wrapper library"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pymeteosource-1.7.0.tar.gz", hash = "sha256:aa59f251227be532020847df92114a73bab455ad649ec57c9a13643206c6bfa5"},
+]
+
+[package.dependencies]
+pytz = "*"
+requests = "*"
+wheel = "*"
+
+[package.extras]
+pandas = ["pandas"]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -1188,7 +1206,21 @@ files = [
 [package.extras]
 watchmedo = ["PyYAML (>=3.10)"]
 
+[[package]]
+name = "wheel"
+version = "0.45.1"
+description = "A built-package format for Python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "wheel-0.45.1-py3-none-any.whl", hash = "sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248"},
+    {file = "wheel-0.45.1.tar.gz", hash = "sha256:661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729"},
+]
+
+[package.extras]
+test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "ce22b042ff3673fc8abcd42cfa309885bbc8e513006b0d2c73d2c952e4bbd45f"
+content-hash = "35a69b4781f99460d1a5da0ed91afadb1ef4a0b17f621564e46806fe3343eca8"

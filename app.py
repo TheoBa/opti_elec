@@ -1,8 +1,8 @@
 import streamlit as st
-from utils.get_data import get_data, parse_data_string, build_df
-from utils.display import display_time_series
-import pandas as pd
 import datetime as dt
+from utils.get_data import get_history, build_history_df, get_weather
+from utils.display import display_time_series
+
 
 ENTITY_IDS = {
     "capteur_chambre_temperature": "sensor",
@@ -23,11 +23,19 @@ def welcome_page():
     button = st.button("get data")
     if button:
         for entity_id, prefix in ENTITY_IDS.items():
-            data = get_data(entity_id, is_sensor=(prefix == 'sensor'))
-            st.dataframe(build_df(data, prefix))
+            data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
+            df = build_history_df(data, is_sensor=(prefix == 'sensor'))
+            df.to_csv(f"data/{entity_id}.csv", index=False)
     
+    button = st.button("get weather")
+    if button:
+        weather_df = get_weather()
+        day = dt.datetime.now().strftime('%Y-%m-%d')
+        weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
+
     # Display time series plots
     display_time_series()
+
 
 if __name__=="__main__":
     welcome_page()
