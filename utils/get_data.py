@@ -5,11 +5,8 @@ import json
 import datetime as dt
 
 
-def get_data(entity_id="", is_sensor=True):
-    if is_sensor:
-        url = "https://17blacroix.duckdns.org:8123/api/states/sensor." + entity_id
-    else:
-        url = "https://17blacroix.duckdns.org:8123/api/states/input_boolean." + entity_id
+def get_data(entity_id=""):
+    url = "https://17blacroix.duckdns.org:8123/api/states/" + entity_id
     TOKEN = st.secrets["API_TOKEN"]
     headers = {
         "Authorization": f"Bearer " + TOKEN
@@ -17,15 +14,11 @@ def get_data(entity_id="", is_sensor=True):
     response = requests.request("GET", url, headers=headers)
     return response.text
 
-def get_history(entity_id="", is_sensor=True):
-    start_time = dt.datetime.now() - dt.timedelta(days=1)
+def get_history(entity_id="", days_delta=1):
+    start_time = dt.datetime.now() - dt.timedelta(days=days_delta)
     end_time = dt.datetime.now()
     start_date = start_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     end_date = "?end_time=" + end_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
-    if is_sensor:
-        entity_id = "sensor." + entity_id
-    else:
-        entity_id = "input_boolean." + entity_id
     entity_id_query = "&filter_entity_id=" + entity_id + "&minimal_response"
 
     url = f"https://17blacroix.duckdns.org:8123/api/history/period/{start_date}{end_date}{entity_id_query}"
@@ -37,11 +30,7 @@ def get_history(entity_id="", is_sensor=True):
     response = requests.request("GET", url, headers=headers)
     return parse_data_string(response.text)[0][1:]
 
-def build_history_df(inputs, is_sensor):
-    if is_sensor:
-        column_names = {"state": "temperature", "last_changed": "date"}
-    else:
-        column_names = {"last_changed": "date"}
+def build_history_df(inputs, column_names):
     df = (
         pd.DataFrame.from_dict(inputs)
         .rename(columns=column_names)

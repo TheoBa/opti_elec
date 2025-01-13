@@ -10,6 +10,11 @@ ENTITY_IDS = {
     "paris_17eme_arrondissement_temperature": "sensor",
     "radiateur_bureau_switch": "input_boolean"
 }
+ENTITY_IDS = [
+    "sensor.capteur_salon_temperature",
+    "sensor.paris_17eme_arrondissement_temperature",
+    "input_boolean.radiateur_bureau_switch"
+]
 
 st.set_page_config(
     page_title='Homepage', 
@@ -19,13 +24,18 @@ st.set_page_config(
 )
 
 def welcome_page():
-    st.markdown("""# PoC OptiElec""")
-    button = st.button("get data")
-    if button:
-        for entity_id, prefix in ENTITY_IDS.items():
-            data = get_history(entity_id, is_sensor=(prefix == 'sensor'))
-            df = build_history_df(data, is_sensor=(prefix == 'sensor'))
-            df.to_csv(f"data/{entity_id}.csv", index=False)
+    with st.form("Reload database"):
+        days_delta = st.number_input("Delta days for DB history", value=1)
+        submitted = st.form_submit_button("Reload DB")
+        if submitted:
+            for entity_id in ENTITY_IDS:
+                if entity_id.split(".")[0]=="sensor":
+                    column_names={"state": "temperature", "last_changed": "date"}
+                else:
+                    column_names={"last_changed": "date"}
+                data = get_history(entity_id, days_delta=days_delta)
+                df = build_history_df(data, column_names=column_names)
+                df.to_csv(f"data/tests_data/{entity_id.split(".")[1]}.csv", index=False)
     
     button = st.button("get weather")
     if button:
