@@ -26,7 +26,7 @@ def welcome_page():
         temperature_interieur_id="sensor.capteur_salon_temperature",
         temperature_exterieur_id="sensor.paris_17eme_arrondissement_temperature",
         switch_id="input_boolean.radiateur_bureau_switch",
-        days_delta=100
+        days_delta=13
         )
     button = st.button("update_db")
     if button:

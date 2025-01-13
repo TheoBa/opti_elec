@@ -1,5 +1,6 @@
 import pandas as pd
 from utils.get_data import get_history, build_history_df
+import datetime as dt
 
 class ClientModule():
     """Object created to monitor each client's Flat properties"""
@@ -42,5 +43,11 @@ class ClientModule():
 
     def identify_switch_offs(self):
         self.switch_df['date'] = pd.to_datetime(self.switch_df['date'])
-        self.switch_df['time_delta'] = self.switch_df['date'].diff()
-        return self.switch_df
+        self.switch_df['time_delta_before_switch'] = self.switch_df['date'].diff()
+        self.switch_df["time_delta_after_switch"] = -self.switch_df['date'].diff(-1)
+        cdt_off = self.switch_df.state == "off"
+        cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(minutes=30)
+        cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=5)
+        self.selected_switches = self.switch_df[cdt_off & cdt_before & cdt_after]
+        return self.selected_switches
+    

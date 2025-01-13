@@ -15,22 +15,12 @@ def prepare_data(file_path: str) -> pd.DataFrame:
         pd.DataFrame: Processed DataFrame ready for plotting
     """
     df = pd.read_csv(file_path)
+    df = df.rename(columns={'date': 'timestamp'})
     
-    # Handle binary_chauffage.csv format
-    if 'entity_id' in df.columns:
-        df = df[['state', 'last_changed']]
-        df = df.rename(columns={'last_changed': 'timestamp'})
+    if 'state' in df.columns:
         df['state'] = df['state'].map({'on': 1, 'off': 0})  # Convert to binary
-    
-    # Handle temperature data format
-    elif '°C.mean_value' in df.columns:
-        df = df.rename(columns={
-            'time': 'timestamp',
-            '°C.mean_value': 'temperature'
-        })
+    else:
         df['temperature'] = pd.to_numeric(df['temperature'], errors='coerce')
-    
-    # Convert timestamp to datetime
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     
     return df
@@ -136,23 +126,13 @@ def create_combined_graph(data_dir: str):
     """
     try:
         # Read all temperature data
-        bedroom_df = prepare_data(f'{data_dir}/bedroom_temperature.csv')
-        living_room_df = prepare_data(f'{data_dir}/living_room_temperature.csv')
-        outside_df = prepare_data(f'{data_dir}/outside_temperature.csv')
-        heating_df = prepare_data(f'{data_dir}/binary_chauffage.csv')
+        # bedroom_df = prepare_data(f'{data_dir}/bedroom_temperature.csv')
+        living_room_df = prepare_data(f'{data_dir}/capteur_salon_temperature.csv')
+        outside_df = prepare_data(f'{data_dir}/paris_17eme_arrondissement_temperature.csv')
+        heating_df = prepare_data(f'{data_dir}/radiateur_bureau_switch.csv')
         
         # Create figure with secondary y-axis
         fig = go.Figure()
-        
-        # Add temperature lines
-        fig.add_trace(
-            go.Scatter(
-                x=bedroom_df['timestamp'],
-                y=bedroom_df['temperature'],
-                name='Bedroom',
-                line=dict(color='blue')
-            )
-        )
         
         fig.add_trace(
             go.Scatter(
@@ -229,7 +209,7 @@ def display_time_series():
     Display time series plots for all CSV files in the data/tests_data directory
     using Plotly and Streamlit
     """
-    data_dir = 'data/tests_data'
+    data_dir = 'data/db'
     
     if not os.path.exists(data_dir):
         st.warning("No data/tests_data directory found")
