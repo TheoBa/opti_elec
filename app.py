@@ -26,7 +26,8 @@ def welcome_page():
         temperature_interieur_id="sensor.capteur_salon_temperature",
         temperature_exterieur_id="sensor.paris_17eme_arrondissement_temperature",
         switch_id="input_boolean.radiateur_bureau_switch",
-        days_delta=10
+        days_delta=10,
+        mean_consumption=2500,
         )
     button = st.button("update_db")
     if button:
@@ -39,6 +40,7 @@ def welcome_page():
     st.markdown(f"tau_values: {dict_tau['tau_values']}")
     st.markdown(f"valid_periods: {dict_tau['valid_periods']}")
     st.markdown(f"total_periods: {dict_tau['total_periods']}")
+    st.dataframe(maison_caussa.get_daily_consumption())
 
     with st.form("Reload database"):
         days_delta = st.number_input("Delta days for DB history", value=1)

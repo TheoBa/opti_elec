@@ -13,7 +13,8 @@ class ClientModule():
             temperature_interieur_id: str,
             temperature_exterieur_id: str,
             switch_id: str,
-            days_delta: int
+            days_delta: int,
+            mean_consumption: int
     ) -> None:
         """Initialize the module"""
         self._name = name
@@ -26,6 +27,7 @@ class ClientModule():
              "input_boolean.radiateur_bureau_switch"
              ]
         self.days_delta = days_delta
+        self.mean_consumption = mean_consumption
 
     def update_db(self):
         """A terme cette function sera appellée ponctuellement pour populer la base de donnée avec les données les plus récentes"""
@@ -153,3 +155,28 @@ class ClientModule():
             'valid_periods': valid_periods,
             'total_periods': total_periods
         }
+    
+    def get_daily_consumption(self):
+        """
+        Calculate daily consumption by summing up the time when switches were turned on.
+        Returns a DataFrame with:
+            - day: date of consumption
+            - uptime: total time switches were on (in hours)
+            - conso (in kWh): consumption in kWh (uptime * mean_consumption / 1000)
+        """
+        self.switch_df['date'] = pd.to_datetime(self.switch_df['date'])
+        self.switch_df['day'] = self.switch_df['date'].dt.date
+        
+        daily_consumption = (
+            self.switch_df[self.switch_df["state"] == "on"]
+            .groupby('day')['time_delta_after_switch']
+            .sum()
+            .reset_index()
+            .rename(columns={'time_delta_after_switch': 'uptime'})
+            .assign(
+                uptime=lambda x: x['uptime'].dt.total_seconds() / 3600,  # Convert to hours
+                **{'conso (in kWh)': lambda x: x['uptime'] * self.mean_consumption / 1000}  # Convert to kWh
+            )
+        )
+        
+        return daily_consumption
