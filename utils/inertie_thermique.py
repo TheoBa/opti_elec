@@ -2,6 +2,7 @@ import pandas as pd
 from utils.get_data import get_history, build_history_df
 import datetime as dt
 import numpy as np
+import streamlit as st
 
 class ClientModule():
     """Object created to monitor each client's Flat properties"""
@@ -135,10 +136,10 @@ class ClientModule():
         for period_start, segment in segments.groupby('cooling_period_start'):
             total_periods += 1
             [T0, t0], [T1, t1] = self.identify_min_max(segment)
-            T_ext = self.get_temperature_ext(t0, t1)
+            t_margin = dt.timedelta(hours=5)
+            T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
             delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
             tau = (T0 - T_ext) * delta_t / (T0 - T1)
-            
             if tau <= 0:
                 print("ERROR ERROR ERROR : Tau is <= 0 !!!")
 
