@@ -17,8 +17,6 @@ def get_data(entity_id=""):
 def get_history(entity_id="", days_delta=1):
     start_time = dt.datetime.now() - dt.timedelta(days=0 + days_delta)
     end_time = dt.datetime.now() - dt.timedelta(days=0)
-    st.markdown(start_time)
-    st.markdown(end_time)
     start_date = start_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     end_date = "?end_time=" + end_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     entity_id_query = "&filter_entity_id=" + entity_id + "&minimal_response"
@@ -30,7 +28,6 @@ def get_history(entity_id="", days_delta=1):
         "Authorization": f"Bearer " + TOKEN
     }
     response = requests.request("GET", url, headers=headers)
-    st.markdown(response.text)
     return parse_data_string(response.text)[0][1:]
 
 def build_history_df(inputs, column_names):
