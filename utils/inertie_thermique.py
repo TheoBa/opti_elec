@@ -128,7 +128,7 @@ def _get_daily_consumption(self):
     self.switch_df['date'] = pd.to_datetime(self.switch_df['date'])
     self.switch_df['day'] = self.switch_df['date'].dt.date
     
-    daily_consumption = (
+    self.daily_consumption = (
         self.switch_df[self.switch_df["state"] == "on"]
         .groupby('day')['time_delta_after_switch']
         .sum()
@@ -139,5 +139,4 @@ def _get_daily_consumption(self):
             **{'conso (in kWh)': lambda x: x['uptime'] * self.mean_consumption / 1000}  # Convert to kWh
         )
     )
-    
-    return daily_consumption
+    return self.daily_consumption

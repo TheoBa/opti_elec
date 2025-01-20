@@ -1,8 +1,8 @@
 import streamlit as st
 import datetime as dt
-from utils.get_data import get_history, build_history_df, get_weather
+from utils.get_data import get_history, build_history_df
 from utils.display import display_time_series
-from utils.inertie_thermique import ClientModule
+from utils.forecast import get_weather
 from utils.base import HomeModule
 
 
@@ -59,8 +59,15 @@ def welcome_page():
     button = st.button("get weather")
     if button:
         weather_df = get_weather()
-        day = dt.datetime.now().strftime('%Y-%m-%d')
-        weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
+        # day = dt.datetime.now().strftime('%Y-%m-%d')
+        # weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
+        st.dataframe(weather_df)
+
+    button = st.button("get feature weather")
+    if button:
+        features = maison_caussa.build_forecast_features()
+        st.dataframe(features)
+        
 
     # Display time series plots
     display_time_series()

@@ -2,9 +2,8 @@ import pandas as pd
 from utils.get_data import _update_db, _populate_df
 from utils.inertie_thermique import _identify_switch_offs, _select_temperature_switch_offs,\
        _identify_min_max, _get_temperature_ext, _compute_tau, _get_daily_consumption
-import datetime as dt
-import numpy as np
-import streamlit as st
+from utils.forecast import _build_forecast_features
+
 
 class HomeModule():
     """Object created to monitor each client's Flat properties"""
@@ -59,3 +58,6 @@ class HomeModule():
     
     def get_daily_consumption(self):
         return _get_daily_consumption(self)
+
+    def build_forecast_features(self):
+        return _build_forecast_features(self)
