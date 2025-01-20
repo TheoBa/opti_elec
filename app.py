@@ -3,6 +3,7 @@ import datetime as dt
 from utils.get_data import get_history, build_history_df, get_weather
 from utils.display import display_time_series
 from utils.inertie_thermique import ClientModule
+from utils.base import HomeModule
 
 
 ENTITY_IDS = [
@@ -20,7 +21,7 @@ st.set_page_config(
 )
 
 def welcome_page():
-    maison_caussa = ClientModule()
+    maison_caussa = HomeModule()
     maison_caussa.init(
         name="maison_caussa",
         temperature_interieur_id="sensor.capteur_salon_temperature",

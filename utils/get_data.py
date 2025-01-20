@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import json
 import datetime as dt
+import os
 
 
 def get_data(entity_id=""):
@@ -93,3 +94,35 @@ def get_weather():
     # st.dataframe(df)
     return df
    
+def _update_db(self):
+    """A terme cette function sera appellée ponctuellement pour populer la base de donnée avec les données les plus récentes"""
+    for entity_id in self.ENTITY_IDS:
+        if entity_id.split(".")[0]=="sensor":
+            column_names={"state": "temperature", "last_changed": "date"}
+        else:
+            column_names={"last_changed": "date"}
+        data = get_history(entity_id, days_delta=self.days_delta)
+        df = build_history_df(data, column_names=column_names)
+        self.populate_df(df, f"data/db/{entity_id.split(".")[1]}.csv")
+
+def _populate_df(self, df_new: pd.DataFrame, csv_path: str):
+    """
+    Populate or update a CSV file with new data, avoiding duplicates.
+    
+    Args:
+        csv_path: Path to the CSV file
+        df_new: New DataFrame to add to the existing data
+    """
+    if os.path.exists(csv_path):
+        df_old = pd.read_csv(csv_path, sep=",")
+        
+        df_old['date'] = pd.to_datetime(df_old['date'])
+        df_new['date'] = pd.to_datetime(df_new['date'])
+        df_new = df_new[~df_new['date'].isin(df_old['date'])]
+        df_combined = pd.concat([df_old, df_new], ignore_index=True)
+        df_combined = df_combined.sort_values('date')
+        
+        df_combined.to_csv(csv_path, index=False)
+    else:
+        # If file doesn't exist, save the new DataFrame
+        df_new.to_csv(csv_path, index=False)
