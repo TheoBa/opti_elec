@@ -15,10 +15,10 @@ def _identify_switch_offs(self):
 def _identify_switch_ons(self):
     cdt_on = self.switch_df.state == "on"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(hours=5)
-    cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(minutes=30)
+    cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=1)
     self.selected_switches_on = self.switch_df[cdt_on & cdt_before & cdt_after]
 
-def _select_temperature_after_switch(self, switch_event): 
+def _select_temperature_after_switch(self, switch_event, time_delta: int = 5): 
     """
     Select temperature data for 5 hours after a given switch-off event.
     Returns a DataFrame containing temperature measurements during the cooling period.
@@ -30,13 +30,13 @@ def _select_temperature_after_switch(self, switch_event):
     self.temperature_int_df = self.temperature_int_df.dropna(subset=['temperature'])
 
     start_time = switch_event['date']
-    end_time = start_time + dt.timedelta(hours=5)
+    end_time = start_time + dt.timedelta(hours=time_delta)
     mask = (self.temperature_int_df['date'] >= start_time) & (self.temperature_int_df['date'] <= end_time)
     segment = self.temperature_int_df[mask].copy()
-    segment['cooling_period_start'] = start_time
+    segment['switch_period_start'] = start_time
     return segment 
 
-def _identify_min_max(self, segment):
+def _identify_min_max(self, segment, is_cooling=True):
     """
     For a given temperature segment, identify:
     - [T0, t0]: Maximum temperature and its timestamp
@@ -49,15 +49,26 @@ def _identify_min_max(self, segment):
         tuple: Two lists [T0, t0] and [T1, t1]
     """
     segment['date'] = pd.to_datetime(segment['date'])
-    max_temp_idx = segment['temperature'].idxmax()
-    T0 = segment.loc[max_temp_idx, 'temperature']
-    t0 = segment.loc[max_temp_idx, 'date']
-    
-    # Get the first temperature reading after t1
-    t1 = t0 + dt.timedelta(hours=1)
-    mask = (segment['date'] >= t1)
-    T1 = segment[mask].iloc[0]['temperature']
-    t1 = segment[mask].iloc[0]['date']
+    if is_cooling:
+        max_temp_idx = segment['temperature'].idxmax()
+        T0 = segment.loc[max_temp_idx, 'temperature']
+        t0 = segment.loc[max_temp_idx, 'date']
+
+        # Get the first temperature reading after t1
+        t1 = t0 + dt.timedelta(hours=1)
+        mask = (segment['date'] >= t1)
+        T1 = segment[mask].iloc[0]['temperature']
+        t1 = segment[mask].iloc[0]['date']
+    else:
+        min_temp_idx = segment['temperature'].idxmin()
+        T0 = segment.loc[min_temp_idx, 'temperature']
+        t0 = segment.loc[min_temp_idx, 'date']
+
+        # Get the first temperature reading after t1
+        t1 = t0 + dt.timedelta(hours=.5)
+        mask = (segment['date'] >= t1)
+        T1 = segment[mask].iloc[0]['temperature']
+        t1 = segment[mask].iloc[0]['date']
 
     return [T0, t0], [T1, t1]
 
@@ -99,9 +110,9 @@ def _compute_tau(self):
     valid_periods = 0
     
     # Group by cooling period
-    for period_start, segment in segments.groupby('cooling_period_start'):
+    for period_start, segment in segments.groupby('switch_period_start'):
         total_periods += 1
-        [T0, t0], [T1, t1] = self.identify_min_max(segment)
+        [T0, t0], [T1, t1] = self.identify_min_max(segment, is_cooling=True)
         t_margin = dt.timedelta(hours=5)
         T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
         delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
@@ -112,6 +123,7 @@ def _compute_tau(self):
         tau_values.append(tau)
         valid_periods += 1
     
+    self.tau = np.mean(tau_values)
     return {
         'tau_mean': np.mean(tau_values),
         'tau_std': np.std(tau_values),
@@ -122,38 +134,46 @@ def _compute_tau(self):
 
 def _compute_C(self):
     """
-    Compute C values for all cooling periods using the formula:
-    C = tau*Phi_rad / [tau*(T1-T0)/(t1-t0) + T0 - T_ext]
+    Compute C values for all heating periods using the formula:
+    C = tau*phi_rad / [tau*(T1-T0)/(t1-t0) + T0 - T_ext]
     
     Returns:
         dict: Dictionary containing:
             - 'C_mean': mean C value
             - 'C_std': standard deviation of C values
             - 'C_values': list of individual C values
-            - 'valid_periods': number of valid cooling periods used
-            - 'total_periods': total number of cooling periods found
+            - 'valid_periods': number of valid heating periods used
+            - 'total_periods': total number of heating periods found
     """
     self.identify_switch_ons()
-    segments = pd.concat([self._select_temperature_after_switch(switch_event) for _, switch_event in self.selected_switches_on.iterrows()], ignore_index=True)
+    segments = pd.concat([self.select_temperature_after_switch(switch_event, time_delta=2) for _, switch_event in self.selected_switches_on.iterrows()], ignore_index=True)
 
     C_values = []
     total_periods = 0
     valid_periods = 0
     
-    # Group by cooling period
-    for period_start, segment in segments.groupby('cooling_period_start'):
+    # Group by heating period
+    for period_start, segment in segments.groupby('switch_period_start'):
         total_periods += 1
-        [T0, t0], [T1, t1] = self.identify_min_max(segment)
+        [T0, t0], [T1, t1] = self.identify_min_max(segment, is_cooling=False)
         t_margin = dt.timedelta(hours=5)
         T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
         delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
-        C = (T0 - T_ext) * delta_t / (T0 - T1)
-        if C <= 0:
-            print("ERROR ERROR ERROR : Tau is <= 0 !!!")
-
-        C_values.append(C)
-        valid_periods += 1
+        
+        tau = self.tau
+        phi_rad = self.mean_consumption
+        
+        denominator = tau * (T1 - T0) / delta_t + T0 - T_ext
+        if denominator != 0:
+            C = tau * phi_rad / denominator
+            if C <= 0:
+                print("ERROR ERROR ERROR : C is <= 0 !!!")
+            C_values.append(C)
+            valid_periods += 1
+        else:
+            print("ERROR ERROR ERROR : Denominator is 0 !!!")
     
+    self.C = C
     return {
         'C_mean': np.mean(C_values),
         'C_std': np.std(C_values),

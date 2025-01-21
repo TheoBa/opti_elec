@@ -34,27 +34,25 @@ def welcome_page():
     if button:
         maison_caussa.update_db()
     maison_caussa.load_df()
-    dict_tau = maison_caussa.compute_tau()
-    
-    st.markdown(f"tau_mean: {dict_tau['tau_mean']}")
-    st.markdown(f"tau_std: {dict_tau['tau_std']}")
-    st.markdown(f"tau_values: {dict_tau['tau_values']}")
-    st.markdown(f"valid_periods: {dict_tau['valid_periods']}")
-    st.markdown(f"total_periods: {dict_tau['total_periods']}")
-    st.dataframe(maison_caussa.get_daily_consumption())
 
-    with st.form("Reload database"):
-        days_delta = st.number_input("Delta days for DB history", value=1)
-        submitted = st.form_submit_button("Reload DB")
-        if submitted:
-            for entity_id in ENTITY_IDS:
-                if entity_id.split(".")[0]=="sensor":
-                    column_names={"state": "temperature", "last_changed": "date"}
-                else:
-                    column_names={"last_changed": "date"}
-                data = get_history(entity_id, days_delta=days_delta)
-                df = build_history_df(data, column_names=column_names)
-                df.to_csv(f"data/tests_data/{entity_id.split(".")[1]}.csv", index=False)
+    with st.expander("Tau and C computation"):
+        dict_tau = maison_caussa.compute_tau()
+        st.markdown(f"tau_mean: {dict_tau['tau_mean']}")
+        st.markdown(f"tau_std: {dict_tau['tau_std']}")
+        st.markdown(f"tau_values: {dict_tau['tau_values']}")
+        st.markdown(f"valid_periods: {dict_tau['valid_periods']}")
+        st.markdown(f"total_periods: {dict_tau['total_periods']}")
+        st.markdown(maison_caussa.tau)
+
+        dict_C = maison_caussa.compute_C()
+        st.markdown(f"C_mean: {dict_C['C_mean']}")
+        st.markdown(f"C_std: {dict_C['C_std']}")
+        st.markdown(f"C_values: {dict_C['C_values']}")
+        st.markdown(f"valid_periods: {dict_C['valid_periods']}")
+        st.markdown(f"total_periods: {dict_C['total_periods']}")
+
+    with st.expander("Get daily heating consumption"):
+        st.dataframe(maison_caussa.get_daily_consumption())
     
     button = st.button("get weather")
     if button:
