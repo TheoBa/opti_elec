@@ -1,7 +1,8 @@
 import pandas as pd
 from utils.get_data import _update_db, _populate_df
-from utils.inertie_thermique import _identify_switch_offs, _select_temperature_switch_offs,\
-       _identify_min_max, _get_temperature_ext, _compute_tau, _get_daily_consumption
+from utils.inertie_thermique import _identify_switch_offs, _identify_switch_ons, \
+    _select_temperature_switch_offs, _identify_min_max, _get_temperature_ext, _compute_tau, \
+    _get_daily_consumption
 from utils.forecast import _build_forecast_features
 
 
@@ -53,6 +54,9 @@ class HomeModule():
 
     def identify_switch_offs(self):
         return _identify_switch_offs(self)
+    
+    def identify_switch_ons(self):
+        return _identify_switch_ons(self)
     
     def select_temperature_switch_offs(self, switch_event): 
         return _select_temperature_switch_offs(self, switch_event)

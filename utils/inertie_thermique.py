@@ -120,6 +120,48 @@ def _compute_tau(self):
         'total_periods': total_periods
     }
 
+def _compute_C(self):
+    """
+    Compute C values for all cooling periods using the formula:
+    C = tau*Phi_rad / [tau*(T1-T0)/(t1-t0) + T0 - T_ext]
+    
+    Returns:
+        dict: Dictionary containing:
+            - 'C_mean': mean C value
+            - 'C_std': standard deviation of C values
+            - 'C_values': list of individual C values
+            - 'valid_periods': number of valid cooling periods used
+            - 'total_periods': total number of cooling periods found
+    """
+    self.identify_switch_ons()
+    segments = pd.concat([self.select_temperature_switch_offs(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
+
+    C_values = []
+    total_periods = 0
+    valid_periods = 0
+    
+    # Group by cooling period
+    for period_start, segment in segments.groupby('cooling_period_start'):
+        total_periods += 1
+        [T0, t0], [T1, t1] = self.identify_min_max(segment)
+        t_margin = dt.timedelta(hours=5)
+        T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
+        delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
+        C = (T0 - T_ext) * delta_t / (T0 - T1)
+        if C <= 0:
+            print("ERROR ERROR ERROR : Tau is <= 0 !!!")
+
+        C_values.append(C)
+        valid_periods += 1
+    
+    return {
+        'C_mean': np.mean(C_values),
+        'C_std': np.std(C_values),
+        'C_values': C_values,
+        'valid_periods': valid_periods,
+        'total_periods': total_periods
+    }
+
 def _get_daily_consumption(self):
     """
     Calculate daily consumption by summing up the time when switches were turned on.
