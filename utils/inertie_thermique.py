@@ -16,9 +16,9 @@ def _identify_switch_ons(self):
     cdt_on = self.switch_df.state == "on"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(hours=5)
     cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(minutes=30)
-    self.selected_switches_off = self.switch_df[cdt_on & cdt_before & cdt_after]
+    self.selected_switches_on = self.switch_df[cdt_on & cdt_before & cdt_after]
 
-def _select_temperature_switch_offs(self, switch_event): 
+def _select_temperature_after_switch(self, switch_event): 
     """
     Select temperature data for 5 hours after a given switch-off event.
     Returns a DataFrame containing temperature measurements during the cooling period.
@@ -92,7 +92,7 @@ def _compute_tau(self):
             - 'total_periods': total number of cooling periods found
     """
     self.identify_switch_offs()
-    segments = pd.concat([self.select_temperature_switch_offs(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
+    segments = pd.concat([self.select_temperature_after_switch(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
 
     tau_values = []
     total_periods = 0
@@ -134,7 +134,7 @@ def _compute_C(self):
             - 'total_periods': total number of cooling periods found
     """
     self.identify_switch_ons()
-    segments = pd.concat([self.select_temperature_switch_offs(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
+    segments = pd.concat([self._select_temperature_after_switch(switch_event) for _, switch_event in self.selected_switches_on.iterrows()], ignore_index=True)
 
     C_values = []
     total_periods = 0
