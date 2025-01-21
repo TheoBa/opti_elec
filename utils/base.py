@@ -40,6 +40,16 @@ class HomeModule():
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
         self.temperature_int_df = pd.read_csv("data/db/capteur_salon_temperature.csv", sep=",")
         self.switch_df = pd.read_csv("data/db/radiateur_bureau_switch.csv", sep=",")
+        self.prepare_df()
+
+    def prepare_df(self):
+        self.switch_df = (self.switch_df
+            .assign(
+                date=lambda df: pd.to_datetime(df['date']),
+                time_delta_before_switch=lambda df: df['date'].diff(),
+                time_delta_after_switch=lambda df: -df['date'].diff(-1)
+            )
+        )
 
     def identify_switch_offs(self):
         return _identify_switch_offs(self)

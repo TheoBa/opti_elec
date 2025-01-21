@@ -7,13 +7,16 @@ import streamlit as st
 
 
 def _identify_switch_offs(self):
-    self.switch_df['date'] = pd.to_datetime(self.switch_df['date'])
-    self.switch_df['time_delta_before_switch'] = self.switch_df['date'].diff()
-    self.switch_df["time_delta_after_switch"] = -self.switch_df['date'].diff(-1)
     cdt_off = self.switch_df.state == "off"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(minutes=30)
     cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=5)
     self.selected_switches_off = self.switch_df[cdt_off & cdt_before & cdt_after]
+
+def _identify_switch_ons(self):
+    cdt_on = self.switch_df.state == "on"
+    cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(hours=5)
+    cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(minutes=30)
+    self.selected_switches_off = self.switch_df[cdt_on & cdt_before & cdt_after]
 
 def _select_temperature_switch_offs(self, switch_event): 
     """
