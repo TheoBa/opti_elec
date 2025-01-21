@@ -13,7 +13,7 @@ def _identify_switch_offs(self):
     cdt_off = self.switch_df.state == "off"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(minutes=30)
     cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=5)
-    self.selected_switches = self.switch_df[cdt_off & cdt_before & cdt_after]
+    self.selected_switches_off = self.switch_df[cdt_off & cdt_before & cdt_after]
 
 def _select_temperature_switch_offs(self, switch_event): 
     """
@@ -89,7 +89,7 @@ def _compute_tau(self):
             - 'total_periods': total number of cooling periods found
     """
     self.identify_switch_offs()
-    segments = pd.concat([self.select_temperature_switch_offs(switch_event) for _, switch_event in self.selected_switches.iterrows()], ignore_index=True)
+    segments = pd.concat([self.select_temperature_switch_offs(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
 
     tau_values = []
     total_periods = 0
