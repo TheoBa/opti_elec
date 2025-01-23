@@ -1,5 +1,7 @@
 import numpy as np
-
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
 
 class SimulationHome():
     """
@@ -48,29 +50,103 @@ class SimulationHome():
         while time < t_end:
             time += self.granularity
             if temperature < T_target - hysteresis:
-                temperature = self.temperature_evolution_heating(self, temperature, time)
+                temperature = self.temperature_evolution_heating(temperature, self.granularity)
                 is_heating = True
             elif temperature >= T_target + hysteresis:
-                temperature = self.temperature_evolution_cooling(self, temperature, time)
+                temperature = self.temperature_evolution_cooling(temperature, self.granularity)
                 is_heating = False
             else: # if temperature within the hysteresis
                 if is_heating:
-                    temperature = self.temperature_evolution_heating(self, temperature, time)
+                    temperature = self.temperature_evolution_heating(temperature, self.granularity)
                 else:
-                    temperature = self.temperature_evolution_cooling(self, temperature, time)
+                    temperature = self.temperature_evolution_cooling(temperature, self.granularity)
             data += [[time, temperature, is_heating]]
         return data
 
     
-    def scenario_1(self):
+    def scenario_1(self, T_target):
         """
         Thermostat entre 7h et 9h, entre 17h et minuit
         Off le reste du temps
         """
+        st.markdown("Launch scenario computation")
         time = 0
         temperature = self.T_0
         is_heating = False
         data = [[time, temperature, is_heating]]
-        for t in range(0, 7, self.granularity):
-            1 == 2
-        return 
+        while time < 7:
+            time += self.granularity
+            temperature = self.temperature_evolution_cooling(temperature, self.granularity)
+            data += [[time, temperature, is_heating]]
+        st.markdown(f"simu ok après 7h, time={time}")
+        data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=7, t_end=9, hysteresis=.4)
+        temperature = data[-1][1]
+        time = 9
+        st.markdown(f"simu ok après 17h, time={data[-1][0]}, temp={data[-1][1]}")
+        while time < 17:
+            time += self.granularity
+            temperature = self.temperature_evolution_cooling(temperature, self.granularity)
+            data += [[time, temperature, is_heating]]
+        data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=17, t_end=24, hysteresis=.4)
+        st.markdown(f"simulation over, time={time}")
+        return data
+    
+    def plot_data(self, df: pd.DataFrame):
+        fig = go.Figure()
+
+        # Add external temperature line
+        fig.add_trace(
+            go.Scatter(
+                x=[0, 24],  # Full time range
+                y=[self.T_ext, self.T_ext],
+                name="External Temperature",
+                line=dict(color='green', dash='dash'),
+                yaxis="y"
+            )
+        )
+
+        # Add temperature trace
+        fig.add_trace(
+            go.Scatter(
+                x=df['time'],
+                y=df['temperature'],
+                name="Temperature",
+                line=dict(color='red'),
+                yaxis="y"
+            )
+        )
+
+        # Add heating status trace
+        fig.add_trace(
+            go.Scatter(
+                x=df['time'],
+                y=df['switch'].astype(int),
+                name="Heating Status",
+                line=dict(color='blue', shape='hv'),
+                yaxis="y2"
+            )
+        )
+
+        # Update layout with secondary y-axis
+        fig.update_layout(
+            title=f'Temperature Evolution and Heating Status - {self.name}',
+            xaxis=dict(title="Time (hours)"),
+            yaxis=dict(
+                title="Temperature (°C)",
+                titlefont=dict(color="red"),
+                tickfont=dict(color="red")
+            ),
+            yaxis2=dict(
+                title="Heating Status",
+                titlefont=dict(color="blue"),
+                tickfont=dict(color="blue"),
+                overlaying="y",
+                side="right",
+                range=[-1, 2],
+                tickvals=[0, 1],
+                ticktext=["OFF", "ON"]
+            ),
+            showlegend=True
+        )
+
+        return fig

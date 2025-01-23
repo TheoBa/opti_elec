@@ -1,10 +1,11 @@
 import streamlit as st
 import datetime as dt
+import pandas as pd
 from utils.get_data import get_history, build_history_df
 from utils.display import display_time_series
 from utils.forecast import get_weather
 from utils.base import HomeModule
-
+from utils.scenario import SimulationHome
 
 ENTITY_IDS = [
     "sensor.capteur_chambre_temperature",
@@ -21,6 +22,7 @@ st.set_page_config(
 )
 
 def welcome_page():
+    st.markdown("Init HomeModule")
     maison_caussa = HomeModule()
     maison_caussa.init(
         name="maison_caussa",
@@ -35,6 +37,7 @@ def welcome_page():
         maison_caussa.update_db()
     maison_caussa.load_df()
 
+    st.markdown("Compute Tau and C for given HomeModule")
     with st.expander("Tau and C computation"):
         dict_tau = maison_caussa.compute_tau()
         st.markdown(f"tau_mean: {dict_tau['tau_mean']}")
@@ -53,6 +56,26 @@ def welcome_page():
 
     with st.expander("Get daily heating consumption"):
         st.dataframe(maison_caussa.get_daily_consumption())
+    
+    st.markdown("Ready to launch scenario 1")
+    with st.expander("plot scenario 1"):
+        simu = SimulationHome()
+        simu.init(
+            name='scenario1',
+            T_0=20,
+            T_ext=10,
+            mean_consumption=2500,
+            tau=maison_caussa.tau,
+            C=maison_caussa.C,
+            granularity=.25
+        )
+        data = simu.scenario_1(T_target=20)
+        df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
+        df = df.drop_duplicates(ignore_index=True)
+        st.dataframe(df)
+        fig = simu.plot_data(df)
+        st.plotly_chart(fig)
+        st.markdown("Plot shown")
     
     button = st.button("get weather")
     if button:
