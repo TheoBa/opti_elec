@@ -2,7 +2,7 @@ import pandas as pd
 from utils.get_data import _update_db, _populate_df
 from utils.inertie_thermique import _identify_switch_offs, _identify_switch_ons, _compute_C,\
     _select_temperature_after_switch, _identify_min_max, _get_temperature_ext, _compute_tau, \
-    _get_daily_consumption
+    _get_daily_consumption, _compute_tau2
 from utils.forecast import _build_forecast_features
 
 
@@ -69,6 +69,9 @@ class HomeModule():
 
     def compute_tau(self):
         return _compute_tau(self)
+    
+    def compute_tau2(self):
+        return _compute_tau2(self)
     
     def compute_C(self):
         return _compute_C(self)
