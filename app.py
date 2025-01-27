@@ -3,7 +3,7 @@ import datetime as dt
 import pandas as pd
 from utils.get_data import get_history, build_history_df
 from utils.display import display_time_series
-from utils.forecast import get_weather
+from utils.forecast import get_weather, analyze_temperature_correlations
 from utils.base import HomeModule
 from utils.scenario import SimulationHome
 
@@ -93,10 +93,13 @@ def welcome_page():
     if button:
         features = maison_caussa.build_forecast_features()
         st.dataframe(features)
+        df = analyze_temperature_correlations(features)
+        st.dataframe(df)
         
 
     # Display time series plots
-    display_time_series()
+    with st.expander("Display time series"):
+        display_time_series()
 
 
 if __name__=="__main__":

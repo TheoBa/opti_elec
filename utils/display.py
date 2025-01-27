@@ -3,6 +3,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import os
+import datetime as dt
+
 
 def prepare_data(file_path: str) -> pd.DataFrame:
     """
@@ -120,16 +122,38 @@ def create_binary_timeline(df: pd.DataFrame, title: str) -> go.Figure:
     
     return fig
 
-def create_combined_graph(data_dir: str):
+def filter_date_range(df: pd.DataFrame, day_min: dt.datetime, day_max: dt.datetime) -> pd.DataFrame:
+    """
+    Filter DataFrame to only include rows between day_min and day_max
+    
+    Args:
+        df (pd.DataFrame): DataFrame with 'timestamp' column
+        day_min (dt.datetime): Start date (inclusive)
+        day_max (dt.datetime): End date (inclusive)
+        
+    Returns:
+        pd.DataFrame: Filtered DataFrame
+    """
+    # Convert day_min and day_max to UTC timezone-aware datetime
+    day_min = pd.to_datetime(day_min).tz_localize('UTC').replace(hour=0, minute=0, second=0)
+    day_max = pd.to_datetime(day_max).tz_localize('UTC').replace(hour=23, minute=59, second=59)
+    
+    # Ensure DataFrame timestamps are in UTC
+    if df['timestamp'].dt.tz is None:
+        df['timestamp'] = df['timestamp'].dt.tz_localize('UTC')
+    
+    # Filter DataFrame
+    mask = (df['timestamp'] >= day_min) & (df['timestamp'] <= day_max)
+    return df[mask]
+
+def create_combined_graph(data_dir: str, day_min: dt.datetime, day_max: dt.datetime):
     """
     Create a combined graph showing all temperature data and heating state
     """
     try:
-        # Read all temperature data
-        # bedroom_df = prepare_data(f'{data_dir}/bedroom_temperature.csv')
-        living_room_df = prepare_data(f'{data_dir}/capteur_salon_temperature.csv')
-        outside_df = prepare_data(f'{data_dir}/paris_17eme_arrondissement_temperature.csv')
-        heating_df = prepare_data(f'{data_dir}/radiateur_bureau_switch.csv')
+        living_room_df = filter_date_range(prepare_data(f'{data_dir}/capteur_salon_temperature.csv'), day_min, day_max)
+        outside_df = filter_date_range(prepare_data(f'{data_dir}/paris_17eme_arrondissement_temperature.csv'), day_min, day_max)
+        heating_df = filter_date_range(prepare_data(f'{data_dir}/radiateur_bureau_switch.csv'), day_min, day_max)
         
         # Create figure with secondary y-axis
         fig = go.Figure()
@@ -210,49 +234,19 @@ def display_time_series():
     using Plotly and Streamlit
     """
     data_dir = 'data/db'
-    
-    if not os.path.exists(data_dir):
-        st.warning("No data/tests_data directory found")
-        return
 
-    # First display the combined graph
-    st.subheader("Combined Temperature and Heating Status")
-    combined_fig = create_combined_graph(data_dir)
-    if combined_fig:
-        st.plotly_chart(combined_fig, use_container_width=True)
-    
-    # Then display individual graphs
-    st.subheader("Individual Measurements")
-    csv_files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
-    
-    if not csv_files:
-        st.warning("No CSV files found in data/tests_data directory")
-        return
+    with st.form("Display current data"):
+        day_min = st.date_input("Start date", value=dt.datetime(2025, 1, 3))
+        day_max = st.date_input("End date", value=dt.datetime.today())
+        submit_btn = st.form_submit_button("Submit date range")
 
-    for csv_file in csv_files:
-        try:
-            # Prepare the data
-            df = prepare_data(f'{data_dir}/{csv_file}')
-            title = f'Time Series for {csv_file[:-4]}'
-            
-            # Create different visualizations based on data type
-            if 'state' in df.columns:
-                fig = create_binary_timeline(df, title)
-            else:
-                fig = px.line(
-                    df,
-                    x='timestamp',
-                    y='temperature',
-                    title=title
-                )
-                fig.update_layout(
-                    xaxis_title="Time",
-                    yaxis_title="Temperature (°C)",
-                    hovermode='x unified'
-                )
-            
-            # Display the plot using Streamlit
-            st.plotly_chart(fig, use_container_width=True)
-            
-        except Exception as e:
-            st.error(f"Error displaying {csv_file}: {str(e)}")
+    if submit_btn:
+        if not os.path.exists(data_dir):
+            st.warning("No data/tests_data directory found")
+            return
+
+        st.subheader("Combined Temperature and Heating Status")
+        combined_fig = create_combined_graph(data_dir, day_min, day_max)
+        if combined_fig:
+            st.plotly_chart(combined_fig, use_container_width=True)
+    
