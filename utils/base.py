@@ -2,7 +2,7 @@ import pandas as pd
 from utils.get_data import _update_db, _populate_df
 from utils.inertie_thermique import _identify_switch_offs, _identify_switch_ons, _compute_C,\
     _select_temperature_after_switch, _identify_min_max, _get_temperature_ext, _compute_tau, \
-    _get_daily_consumption, _compute_tau2
+    _get_daily_consumption, _compute_tau2, _verify_switches
 from utils.forecast import _build_forecast_features
 
 
@@ -57,6 +57,9 @@ class HomeModule():
     
     def identify_switch_ons(self):
         return _identify_switch_ons(self)
+    
+    def verify_switches(self, switch_events, is_cooling=True):
+        return _verify_switches(self, switch_events=switch_events, is_cooling=is_cooling)
     
     def select_temperature_after_switch(self, switch_event, time_delta=5): 
         return _select_temperature_after_switch(self, switch_event, time_delta)
