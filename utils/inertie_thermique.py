@@ -132,6 +132,49 @@ def _compute_tau(self):
         'total_periods': total_periods
     }
 
+def _compute_tau2(self):
+    """
+    Compute tau values for all cooling periods using the formula:
+    tau = (t1-t0)/ln((T0-Text)/(T1 - T_ext))
+    
+    Returns:
+        dict: Dictionary containing:
+            - 'tau_mean': mean tau value
+            - 'tau_std': standard deviation of tau values
+            - 'tau_values': list of individual tau values
+            - 'valid_periods': number of valid cooling periods used
+            - 'total_periods': total number of cooling periods found
+    """
+    self.identify_switch_offs()
+    segments = pd.concat([self.select_temperature_after_switch(switch_event) for _, switch_event in self.selected_switches_off.iterrows()], ignore_index=True)
+
+    tau_values = []
+    total_periods = 0
+    valid_periods = 0
+    
+    # Group by cooling period
+    for period_start, segment in segments.groupby('switch_period_start'):
+        total_periods += 1
+        [T0, t0], [T1, t1] = self.identify_min_max(segment, is_cooling=True)
+        t_margin = dt.timedelta(hours=5)
+        T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
+        delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
+        tau = delta_t/np.log((T0 - T_ext)/(T1 - T_ext))
+        if tau <= 0:
+            print("ERROR ERROR ERROR : Tau is <= 0 !!!")
+
+        tau_values.append(tau)
+        valid_periods += 1
+    
+    self.tau = np.mean(tau_values)
+    return {
+        'tau_mean': np.mean(tau_values),
+        'tau_std': np.std(tau_values),
+        'tau_values': tau_values,
+        'valid_periods': valid_periods,
+        'total_periods': total_periods
+    }
+
 def _compute_C(self):
     """
     Compute C values for all heating periods using the formula:
