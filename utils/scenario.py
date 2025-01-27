@@ -63,13 +63,11 @@ class SimulationHome():
             data += [[time, temperature, is_heating]]
         return data
 
-    
     def scenario_1(self, T_target):
         """
         Thermostat entre 7h et 9h, entre 17h et minuit
         Off le reste du temps
         """
-        st.markdown("Launch scenario computation")
         time = 0
         temperature = self.T_0
         is_heating = False
@@ -78,17 +76,14 @@ class SimulationHome():
             time += self.granularity
             temperature = self.temperature_evolution_cooling(temperature, self.granularity)
             data += [[time, temperature, is_heating]]
-        st.markdown(f"simu ok après 7h, time={time}")
         data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=7, t_end=9, hysteresis=.4)
         temperature = data[-1][1]
         time = 9
-        st.markdown(f"simu ok après 17h, time={data[-1][0]}, temp={data[-1][1]}")
         while time < 17:
             time += self.granularity
             temperature = self.temperature_evolution_cooling(temperature, self.granularity)
             data += [[time, temperature, is_heating]]
         data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=17, t_end=24, hysteresis=.4)
-        st.markdown(f"simulation over, time={time}")
         return data
     
     def plot_data(self, df: pd.DataFrame):
@@ -150,3 +145,25 @@ class SimulationHome():
         )
 
         return fig
+
+    def get_daily_consumption(self, df: pd.DataFrame):
+        """
+        Calculate daily energy consumption based on heater operation time
+        
+        Args:
+            data: pd.Dataframe with columns [time, temperature, switch]
+            
+        Returns:
+            float: Daily energy consumption in kWh
+        """
+        total_heating_time = 0
+        
+        for i in range(1, len(df.index)):
+            if df.loc[i, 'switch']:
+                total_heating_time += self.granularity
+        
+        # Calculate energy consumption in kWh
+        # Power (W) * time (h) / 1000 to convert from Joules to kWh
+        daily_consumption = self.phi_rad * total_heating_time / 1000
+        
+        return total_heating_time, daily_consumption

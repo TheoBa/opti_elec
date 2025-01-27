@@ -57,25 +57,29 @@ def welcome_page():
     with st.expander("Get daily heating consumption"):
         st.dataframe(maison_caussa.get_daily_consumption())
     
-    st.markdown("Ready to launch scenario 1")
-    with st.expander("plot scenario 1"):
-        simu = SimulationHome()
-        simu.init(
-            name='scenario1',
-            T_0=20,
-            T_ext=10,
-            mean_consumption=2500,
-            tau=maison_caussa.tau,
-            C=maison_caussa.C,
-            granularity=.25
-        )
-        data = simu.scenario_1(T_target=20)
-        df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
-        df = df.drop_duplicates(ignore_index=True)
-        st.dataframe(df)
-        fig = simu.plot_data(df)
-        st.plotly_chart(fig)
-        st.markdown("Plot shown")
+    with st.expander(f"Launch simulations"):
+        with st.form("Simulation's parameter's"):
+            T_target = st.number_input("Target temperature for your home", min_value=5, max_value=30, value=20)
+            T_ext = st.number_input("Outside temperature (mean)", min_value=-30, max_value=40, value=5)
+            launch_btn = st.form_submit_button("Launch simulation")
+        if launch_btn:
+            simu = SimulationHome()
+            simu.init(
+                name='scenario1',
+                T_0=T_target,
+                T_ext=T_ext,
+                mean_consumption=2500,
+                tau=maison_caussa.tau,
+                C=maison_caussa.C,
+                granularity=.25
+            )
+            data = simu.scenario_1(T_target=T_target)
+            df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
+            df = df.drop_duplicates(ignore_index=True)
+            uptime, conso = simu.get_daily_consumption(df)
+            st.markdown(f"Heaters uptime: {uptime} (h) - Conso: {conso} (kWh)")
+            fig = simu.plot_data(df)
+            st.plotly_chart(fig)
     
     button = st.button("get weather")
     if button:
