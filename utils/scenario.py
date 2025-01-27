@@ -13,6 +13,7 @@ class SimulationHome():
             name: str,
             T_0: str,
             T_ext: str,
+            T_target: str,
             mean_consumption: int,
             tau: float,
             C: float,
@@ -22,6 +23,7 @@ class SimulationHome():
         self.name = name
         self.T_0 = T_0
         self.T_ext = T_ext
+        self.T_target = T_target
         self.phi_rad = mean_consumption
         self.tau = tau
         self.C = C
@@ -88,6 +90,30 @@ class SimulationHome():
     
     def plot_data(self, df: pd.DataFrame):
         fig = go.Figure()
+
+        # Add comfort zone shaded area
+        fig.add_trace(
+            go.Scatter(
+                x=[0, 24],  # Full time range
+                y=[self.T_target + 1, self.T_target + 1],
+                fill=None,
+                mode='lines',
+                line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[0, 24],  # Full time range
+                y=[self.T_target - 1, self.T_target - 1],
+                fill='tonexty',
+                mode='lines',
+                line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
+                name='Comfort Zone',
+                hoverinfo='skip'
+            )
+        )
 
         # Add external temperature line
         fig.add_trace(

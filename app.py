@@ -68,6 +68,7 @@ def welcome_page():
                 name='scenario1',
                 T_0=T_target,
                 T_ext=T_ext,
+                T_target=T_target,
                 mean_consumption=2500,
                 tau=maison_caussa.tau,
                 C=maison_caussa.C,
