@@ -63,6 +63,8 @@ $(E)$ donne alors:
 <img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}&plus;{\frac{\mathcal{P}}{C}}}}(2)" />
 
 ### Solutions
+En prenant en compte les conditions initiales, les solutions de (E) en fonction de $\mathcal{P}$ sont:
+
 <img src="https://latex.codecogs.com/svg.image?(1)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{ext}&plus;[T_{0}-T_{ext}]*e^{\frac{-t}{\tau}}}}}" />
 
 <img src="https://latex.codecogs.com/svg.image?(2)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{lim}&plus;[T_{0}-T_{lim}]*e^{\frac{-t}{\tau}}}}}" /> 
@@ -70,12 +72,16 @@ $(E)$ donne alors:
 où: <img src="https://latex.codecogs.com/svg.image?T_{lim}=T_{ext}&plus;{\frac{\tau}{C}*{\mathcal{P}}}" />
 
 ### Pente à l'origine
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T_{int}}}(0)=[T_{0}-T_{ext}]*{\frac{-1}{\tau}}}}}(1')" />
+Les expressions de la pente à l'origine de ces 2 solutions mettent en évidence 2 variables thermiques relatives au module étudié $C$ et $\tau$
 
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T_{int}}}(0)=[T_{0}-T_{ext}&plus;{\frac{\tau}{C}*{\mathcal{P}}}]*{\frac{-1}{\tau}}}}}(2')" />
+<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T^{cool}_{int}}}(0)=[T_{0}-T_{ext}]*{\frac{-1}{\tau}}}}}(1')" />
+
+<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T^{heat}_{int}}}(0)=[T_{0}-T_{ext}&plus;{\frac{\tau}{C}*{\mathcal{P}}}]*{\frac{-1}{\tau}}}}}(2')" />
 
 
 ### Derive thermal constants
-<img src="https://latex.codecogs.com/svg.image?(1')\Rightarrow{\boxed{{\tau}=\frac{[T_{0}-T_{ext}]}{{-{\dot{T_{int}}}(0)}}}}" />
+On en déduit alors les expressions de $C$ et $\tau$
 
-<img src="https://latex.codecogs.com/svg.image?(2')\Rightarrow{\boxed{\displaystyle&space;C={\frac{{\tau}*{\mathcal{P}}}{{\tau}*{\dot{T_{int}}}(0)&plus;T_{0}-T_{ext}}}}}" />
+<img src="https://latex.codecogs.com/svg.image?(1')\Rightarrow{\boxed{{\tau}=\frac{[T_{0}-T_{ext}]}{{-{\dot{T^{cool}_{int}}}(0)}}}}" />
+
+<img src="https://latex.codecogs.com/svg.image?(2')\Rightarrow{\boxed{\displaystyle&space;C={\frac{{\tau}*{\mathcal{P}}}{{\tau}*{\dot{T^{heat}_{int}}}(0)&plus;T_{0}-T_{ext}}}}}" />
