@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from utils.inertie_thermique import get_T_ext_w_voisin
 
 class SimulationHome():
     """
@@ -17,7 +18,8 @@ class SimulationHome():
             mean_consumption: int,
             tau: float,
             C: float,
-            granularity: int = .25
+            granularity: int = .25,
+            consider_neighboors: bool = True
     ) -> None:
         """Initialize the simulation"""
         self.name = name
@@ -29,20 +31,21 @@ class SimulationHome():
         self.C = C
         self.granularity = granularity # time granularity in hours
         self.time = 0
+        self.consider_neighboors = consider_neighboors
 
     def temperature_evolution_heating(self, temp_start, t_heating):
         """
         T_int(t) = T_lim + (T_0 - T_lim)*exp(-t/tau)
         Where T_lim = T_ext + tau * phi_rad / C
         """
-        T_lim = self.T_ext + self.tau*self.phi_rad/self.C
+        T_lim = get_T_ext_w_voisin(self.T_ext, self.consider_neighboors) + self.tau*self.phi_rad/self.C
         return T_lim + (temp_start - T_lim)*np.exp(-(t_heating)/self.tau)
     
     def temperature_evolution_cooling(self, temp_start, t_cooling):
         """
         T_int(t) = T_ext + (T_0 - T_ext)*exp(-t/tau)
         """
-        return self.T_ext + (temp_start - self.T_ext)*np.exp(-(t_cooling)/self.tau)
+        return get_T_ext_w_voisin(self.T_ext, self.consider_neighboors) + (temp_start - get_T_ext_w_voisin(self.T_ext, self.consider_neighboors))*np.exp(-(t_cooling)/self.tau)
     
     def thermostat(self, temp_start, T_target, t_init, t_end, hysteresis = 0.4):
         time = t_init

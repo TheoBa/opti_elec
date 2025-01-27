@@ -108,6 +108,18 @@ def _get_temperature_ext(self, t0, t1):
     T_ext = temp_slice['temperature'].mean()
     return T_ext
 
+def get_T_ext_w_voisin(T_ext, consider_neighboors=True):
+    if consider_neighboors:
+        if T_ext>10:
+            T_lim = T_ext
+        elif T_ext>0:
+            T_lim = 10
+        else:
+            T_lim = T_ext + 10
+        return T_lim
+    else:
+        return T_ext
+
 def _compute_tau(self):
     """
     Compute tau values for all cooling periods using the formula:
@@ -135,7 +147,8 @@ def _compute_tau(self):
         t_margin = dt.timedelta(hours=5)
         T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
         delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
-        tau = (T0 - T_ext) * delta_t / (T0 - T1)
+        tau = (T0 - get_T_ext_w_voisin(T_ext, self.consider_neighboors)) * delta_t / (T0 - T1)
+        # st.markdown(f"Text: {T_ext} - Tlim: {get_T_ext_w_voisin(T_ext)}")
         if tau <= 0:
             print("ERROR ERROR ERROR : Tau is <= 0 !!!")
 
@@ -178,7 +191,7 @@ def _compute_tau2(self):
         t_margin = dt.timedelta(hours=5)
         T_ext = self.get_temperature_ext(t0 - t_margin, t1 + t_margin)
         delta_t = (t1 - t0).total_seconds() / 3600  # Convert to hours
-        tau = delta_t/np.log((T0 - T_ext)/(T1 - T_ext))
+        tau = delta_t/np.log((T0 - get_T_ext_w_voisin(T_ext, self.consider_neighboors))/(T1 - get_T_ext_w_voisin(T_ext, self.consider_neighboors)))
         if tau <= 0:
             print("ERROR ERROR ERROR : Tau is <= 0 !!!")
 
@@ -225,9 +238,9 @@ def _compute_C(self):
         tau = self.tau
         phi_rad = self.mean_consumption
         
-        denominator = tau * (T1 - T0) / delta_t + T0 - T_ext
+        denominator = (T1 - T0) / delta_t + (T0 - get_T_ext_w_voisin(T_ext, self.consider_neighboors)) / tau
         if denominator != 0:
-            C = tau * phi_rad / denominator
+            C = phi_rad / denominator
             if C <= 0:
                 print("ERROR ERROR ERROR : C is <= 0 !!!")
             C_values.append(C)

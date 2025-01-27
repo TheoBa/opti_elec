@@ -16,7 +16,8 @@ class HomeModule():
             temperature_exterieur_id: str,
             switch_id: str,
             days_delta: int,
-            mean_consumption: int
+            mean_consumption: int,
+            consider_neighboors: bool = True
     ) -> None:
         """Initialize the module"""
         self._name = name
@@ -30,6 +31,7 @@ class HomeModule():
              ]
         self.days_delta = days_delta
         self.mean_consumption = mean_consumption
+        self.consider_neighboors = consider_neighboors
 
     def update_db(self):
         return _update_db(self)
