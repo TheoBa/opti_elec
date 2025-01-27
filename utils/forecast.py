@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from pymeteosource.api import Meteosource
 from pymeteosource.types import tiers,sections
+import plotly.express as px
+import plotly.graph_objects as go
 
 
 def get_weather():
@@ -54,3 +56,26 @@ def _build_forecast_features(self):
     )
 
     return self.forecast_features
+
+def analyze_temperature_correlations(df):
+    """
+    Displays correlations between temperature features and heater uptime in a simple table.
+    
+    Args:
+        df: DataFrame containing:
+            - day: datetime column
+            - Tmin, Tmax, Tmean: temperature features
+            - uptime: daily heater uptime
+    """
+    # Select only numerical columns and calculate correlations with uptime
+    numerical_cols = ['Tmin', 'Tmax', 'Tmean']
+    correlations = df[numerical_cols].corrwith(df['uptime']).sort_values(ascending=False)
+    
+    # Create a DataFrame for display
+    correlation_df = pd.DataFrame({
+        'Feature': correlations.index,
+        'Correlation with Uptime': correlations.values.round(3)
+    })
+    
+    st.write("### Correlations with Uptime")
+    return correlation_df
