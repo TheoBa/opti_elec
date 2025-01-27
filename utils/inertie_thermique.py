@@ -4,19 +4,38 @@ from utils.get_data import get_history, build_history_df
 import datetime as dt
 import numpy as np
 import streamlit as st
+import plotly.graph_objects as go
 
 
 def _identify_switch_offs(self):
     cdt_off = self.switch_df.state == "off"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(minutes=30)
     cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=5)
-    self.selected_switches_off = self.switch_df[cdt_off & cdt_before & cdt_after]
+    potential_switches = self.switch_df[cdt_off & cdt_before & cdt_after]
+    
+    # Check if we're in verification mode (on the verification page)
+    if st.session_state.get('verification_mode', False):
+        self.selected_switches_off = self.verify_switches(potential_switches, is_cooling=True)
+    else:
+        # Original behavior - use all potential switches
+        self.selected_switches_off = potential_switches
+        
+    return self.selected_switches_off
 
 def _identify_switch_ons(self):
     cdt_on = self.switch_df.state == "on"
     cdt_before = self.switch_df.time_delta_before_switch >= dt.timedelta(hours=5)
     cdt_after = self.switch_df.time_delta_after_switch >= dt.timedelta(hours=1)
-    self.selected_switches_on = self.switch_df[cdt_on & cdt_before & cdt_after]
+    potential_switches = self.switch_df[cdt_on & cdt_before & cdt_after]
+    
+    # Check if we're in verification mode (on the verification page)
+    if st.session_state.get('verification_mode', False):
+        self.selected_switches_on = self.verify_switches(potential_switches, is_cooling=False)
+    else:
+        # Original behavior - use all potential switches
+        self.selected_switches_on = potential_switches
+        
+    return self.selected_switches_on
 
 def _select_temperature_after_switch(self, switch_event, time_delta: int = 5): 
     """
@@ -34,7 +53,7 @@ def _select_temperature_after_switch(self, switch_event, time_delta: int = 5):
     mask = (self.temperature_int_df['date'] >= start_time) & (self.temperature_int_df['date'] <= end_time)
     segment = self.temperature_int_df[mask].copy()
     segment['switch_period_start'] = start_time
-    return segment 
+    return segment
 
 def _identify_min_max(self, segment, is_cooling=True):
     """
@@ -248,3 +267,99 @@ def _get_daily_consumption(self):
         )
     )
     return self.daily_consumption
+
+def _verify_switches(self, switch_events, is_cooling=True):
+    """
+    Interactive verification of switch events using Streamlit.
+    
+    Args:
+        switch_events (pd.DataFrame): DataFrame containing switch events to verify
+        is_cooling (bool): True if verifying switch-offs, False for switch-ons
+        
+    Returns:
+        pd.DataFrame: Verified switch events
+    """
+    if 'verified_switches' not in st.session_state:
+        st.session_state.verified_switches = {}
+    
+    event_type = 'switch_offs' if is_cooling else 'switch_ons'
+    cache_key = f"{self._name}_{event_type}"
+    
+    # If already verified, return cached results
+    if cache_key in st.session_state.verified_switches:
+        return st.session_state.verified_switches[cache_key]
+    
+    switch_events = switch_events.reset_index(drop=True)
+    verified_events = []
+    
+    with st.form(key=f"verify_{event_type}"):
+        st.write(f"### Verify {event_type.replace('_', ' ').title()}")
+        st.write(f"Total events to verify: {len(switch_events)}")
+        
+        # Store selections in a dictionary
+        selections = {}
+        
+        for idx, switch_event in switch_events.iterrows():
+            # Get temperature data around the switch event
+            segment = self.select_temperature_after_switch(
+                switch_event, 
+                time_delta=5 if is_cooling else 2
+            )
+            
+            # Create figure
+            fig = go.Figure()
+            
+            # Add temperature trace
+            fig.add_trace(go.Scatter(
+                x=segment['date'],
+                y=segment['temperature'],
+                name='Interior Temperature',
+                mode='lines+markers'
+            ))
+            
+            # # Add switch event marker
+            # fig.add_vline(
+            #     x=switch_event['date'],
+            #     line_dash="dash",
+            #     line_color="red",
+            #     annotation_text="Switch Event"
+            # )
+            
+            # Update layout
+            fig.update_layout(
+                title=f"Switch Event at {switch_event['date']}",
+                xaxis_title="Time",
+                yaxis_title="Temperature (°C)",
+                height=400
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                # Display plot
+                st.plotly_chart(fig, use_container_width=True)
+            with col2:
+                # Add radio button for selection
+                selections[idx] = st.radio(
+                    f"Keep this event? (Event {idx + 1}/{len(switch_events)})",
+                    options=['Keep', 'Remove'],
+                    key=f'selection_{event_type}_{idx}'
+                )
+            
+            st.markdown("---")
+        
+        # Add submit button at the bottom of the form
+        submitted = st.form_submit_button("Submit All Selections")
+            
+        if submitted:
+            # Process selections
+            for idx, selection in selections.items():
+                if selection == 'Keep':
+                    verified_events.append(switch_events.iloc[idx])
+            
+            verified_df = pd.DataFrame(verified_events)
+            st.session_state.verified_switches[cache_key] = verified_df
+            st.success("Selections saved successfully!")
+            return verified_df
+            
+        # If form not submitted yet, return empty DataFrame
+        return pd.DataFrame(columns=switch_events.columns)

@@ -31,7 +31,7 @@ def welcome_page():
         switch_id="input_boolean.radiateur_bureau_switch",
         days_delta=10,
         mean_consumption=2500,
-        )
+    )
     button = st.button("update_db")
     if button:
         maison_caussa.update_db()
@@ -39,6 +39,12 @@ def welcome_page():
 
     st.markdown("Compute Tau and C for given HomeModule")
     with st.expander("Tau and C computation"):
+        # Use verified switches if available, otherwise use all switches
+        if 'verified_switches' in st.session_state:
+            st.info("Using verified switch events. To modify selections, visit the Data Verification page.")
+        else:
+            st.info("Using all switch events. For more accurate results, consider verifying events in the Data Verification page.")
+            
         dict_tau = maison_caussa.compute_tau()
         st.markdown(f"tau_mean: {dict_tau['tau_mean']}")
         st.markdown(f"tau_std: {dict_tau['tau_std']}")
