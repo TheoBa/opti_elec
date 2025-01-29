@@ -248,7 +248,7 @@ def _compute_C(self):
         else:
             print("ERROR ERROR ERROR : Denominator is 0 !!!")
     
-    self.C = C
+    self.C = np.mean(C_values)
     return {
         'C_mean': np.mean(C_values),
         'C_std': np.std(C_values),
