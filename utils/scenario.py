@@ -222,3 +222,12 @@ class SimulationHome():
         daily_consumption = self.phi_rad * total_heating_time / 1000
         
         return total_heating_time, daily_consumption
+    
+    def time_to_target(self, delta_T):
+        """
+        Compute time it takes to reach target temperature from a delta_T below for the given module
+        """
+        T_lim = get_T_ext_w_voisin(self.T_ext, self.consider_neighboors) + self.tau*self.phi_rad/self.C
+        T_init = (self.T_target - delta_T)
+        time = - 60 * self.tau * np.log( (self.T_target - T_lim) / (T_init- T_lim) )
+        return round(time)

@@ -87,7 +87,16 @@ def welcome_page():
             uptime, conso = simu.get_daily_consumption(df)
             st.markdown(f"Heaters uptime: {uptime} (h) - Conso: {conso} (kWh)")
             fig = simu.plot_data(df)
-            st.plotly_chart(fig)
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                st.plotly_chart(fig)
+            with col2:
+                delta_T = 3
+                st.metric(
+                    f"Time to heat {delta_T}°", 
+                    value=f"{simu.time_to_target(delta_T=delta_T)} min", 
+                    border=True
+                    )
     
     button = st.button("get weather")
     if button:
