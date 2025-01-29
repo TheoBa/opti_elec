@@ -4,6 +4,13 @@ import plotly.graph_objects as go
 import streamlit as st
 from utils.inertie_thermique import get_T_ext_w_voisin
 
+
+SCENARIOS = {
+    "Full thermostat": "scenario_full_thermostat",
+    "Thermostat de 7 à 9 puis 17 à minuit":  "scenario_1"
+    }
+
+
 class SimulationHome():
     """
     Object created to simulate a given module and its consumption accross a range of scenarios for a day
@@ -91,6 +98,24 @@ class SimulationHome():
             data += [[time, temperature, is_heating]]
         data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=17, t_end=24, hysteresis=.4)
         return data
+    
+    def scenario_full_thermostat(self, T_target):
+        """
+        Thermostat tout le temps
+        """
+        st.markdown(f"tau: {self.tau} - C: {self.C}")
+        time = 0
+        temperature = self.T_0
+        is_heating = False
+        data = [[time, temperature, is_heating]]
+        data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=time, t_end=24, hysteresis=.4)
+        return data
+    
+    def pick_scenario(self, scenario_name):
+        if scenario_name=="Full thermostat":
+            return self.scenario_full_thermostat(T_target=self.T_target)
+        elif scenario_name=="Thermostat de 7 à 9 puis 17 à minuit":
+            return self.scenario_1(T_target=self.T_target)
     
     def plot_data(self, df: pd.DataFrame):
         fig = go.Figure()

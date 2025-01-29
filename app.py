@@ -5,7 +5,7 @@ from utils.get_data import get_history, build_history_df
 from utils.display import display_time_series
 from utils.forecast import get_weather, analyze_temperature_correlations
 from utils.base import HomeModule
-from utils.scenario import SimulationHome
+from utils.scenario import SimulationHome, SCENARIOS
 
 ENTITY_IDS = [
     "sensor.capteur_chambre_temperature",
@@ -67,6 +67,7 @@ def welcome_page():
         with st.form("Simulation's parameter's"):
             T_target = st.number_input("Target temperature for your home", min_value=5, max_value=30, value=20)
             T_ext = st.number_input("Outside temperature (mean)", min_value=-30, max_value=40, value=5)
+            scenario = st.selectbox("Pick a scenario", options=list(SCENARIOS.keys()))
             launch_btn = st.form_submit_button("Launch simulation")
         if launch_btn:
             simu = SimulationHome()
@@ -80,7 +81,7 @@ def welcome_page():
                 C=maison_caussa.C,
                 granularity=.25
             )
-            data = simu.scenario_1(T_target=T_target)
+            data = simu.pick_scenario(scenario)
             df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
             df = df.drop_duplicates(ignore_index=True)
             uptime, conso = simu.get_daily_consumption(df)
