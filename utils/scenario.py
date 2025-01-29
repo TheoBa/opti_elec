@@ -80,7 +80,6 @@ class SimulationHome():
         Thermostat entre 7h et 9h, entre 17h et minuit
         Off le reste du temps
         """
-        st.markdown(f"tau: {self.tau} - C: {self.C}")
         time = 0
         temperature = self.T_0
         is_heating = False
@@ -103,7 +102,6 @@ class SimulationHome():
         """
         Thermostat tout le temps
         """
-        st.markdown(f"tau: {self.tau} - C: {self.C}")
         time = 0
         temperature = self.T_0
         is_heating = False

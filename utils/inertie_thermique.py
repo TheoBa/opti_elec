@@ -156,6 +156,7 @@ def _compute_tau(self):
         valid_periods += 1
     
     self.tau = np.mean(tau_values)
+    st.session_state.tau_values = tau_values
     return {
         'tau_mean': np.mean(tau_values),
         'tau_std': np.std(tau_values),
@@ -199,6 +200,7 @@ def _compute_tau2(self):
         valid_periods += 1
     
     self.tau = np.mean(tau_values)
+    st.session_state.tau_values = tau_values
     return {
         'tau_mean': np.mean(tau_values),
         'tau_std': np.std(tau_values),
@@ -249,6 +251,7 @@ def _compute_C(self):
             print("ERROR ERROR ERROR : Denominator is 0 !!!")
     
     self.C = np.mean(C_values)
+    st.session_state.C_values = C_values
     return {
         'C_mean': np.mean(C_values),
         'C_std': np.std(C_values),
@@ -330,14 +333,6 @@ def _verify_switches(self, switch_events, is_cooling=True):
                 mode='lines+markers'
             ))
             
-            # # Add switch event marker
-            # fig.add_vline(
-            #     x=switch_event['date'],
-            #     line_dash="dash",
-            #     line_color="red",
-            #     annotation_text="Switch Event"
-            # )
-            
             # Update layout
             fig.update_layout(
                 title=f"Switch Event at {switch_event['date']}",
@@ -348,10 +343,13 @@ def _verify_switches(self, switch_events, is_cooling=True):
             
             col1, col2 = st.columns(2)
             with col1:
-                # Display plot
                 st.plotly_chart(fig, use_container_width=True)
             with col2:
-                # Add radio button for selection
+                event_to_metric = {"switch_offs": {"name": "tau", "values": st.session_state.tau_values}, "switch_ons": {"name": "C", "values": st.session_state.C_values}}
+                st.metric(
+                    label=f"Associated computed {event_to_metric[event_type]["name"]}",
+                    value = round(event_to_metric[event_type]["values"][idx], 1)
+                )
                 selections[idx] = st.radio(
                     f"Keep this event? (Event {idx + 1}/{len(switch_events)})",
                     options=['Keep', 'Remove'],
