@@ -103,7 +103,7 @@ def welcome_page():
                     border=True
                     )
 
-    with st.expander(f"Simu vs réalité"):
+    with st.expander(f"Simu vs truth"):
         with st.form("Select day and target"):
             T_target = st.number_input("Target temperature for your home", min_value=5, max_value=30, value=20)
             day = st.date_input("Choose a daily comparison", value=dt.datetime(2025, 1, 15))
@@ -111,6 +111,7 @@ def welcome_page():
         if launch_btn:
             switch_df = maison_caussa.switch_df
             temp_df = maison_caussa.temperature_int_df
+            conso_df = maison_caussa.get_daily_consumption()
             day = dt.date(day.year, day.month, day.day)
             temp_ext = maison_caussa.get_temperature_ext(
                 t0=pd.to_datetime(day).tz_localize('UTC').replace(hour=0, minute=0, second=0),
@@ -120,9 +121,10 @@ def welcome_page():
                 T_target=T_target, 
                 T_ext=temp_ext, 
                 tau=maison_caussa.tau, 
-                C=maison_caussa.C, 
+                C=1100, #maison_caussa.C, 
                 daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
-                daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True)
+                daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
+                daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
                 )
     button = st.button("get weather")
     if button:

@@ -251,7 +251,7 @@ def display_time_series():
         if combined_fig:
             st.plotly_chart(combined_fig, use_container_width=True)
 
-def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily_temp_int):
+def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily_temp_int, daily_conso):
     simulation = SimulationHome()
     simulation.init(
         name='simu vs réalité',
@@ -292,4 +292,10 @@ def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily
             value=f"{simulation.time_to_target(delta_T=delta_T)} min", 
             border=True
             )
+        st.metric(
+            f"Simulated daily conso",
+            value=f"{round(daily_conso.iloc[0], 2)} kWh",
+            delta=round(daily_conso.iloc[0] - conso, 2),
+            border=True
+        )
     return
