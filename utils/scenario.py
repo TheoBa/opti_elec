@@ -7,7 +7,8 @@ from utils.inertie_thermique import get_T_ext_w_voisin
 
 SCENARIOS = {
     "Full thermostat": "scenario_full_thermostat",
-    "Thermostat de 7 à 9 puis 17 à minuit":  "scenario_1"
+    "Thermostat de 7 à 9 puis 17 à minuit":  "scenario_1",
+    "Real inputs": "scenario_from_switch_inputs"
     }
 
 
@@ -26,7 +27,8 @@ class SimulationHome():
             tau: float,
             C: float,
             granularity: int = .25,
-            consider_neighboors: bool = True
+            consider_neighboors: bool = True,
+            daily_switch_inputs_df: pd.DataFrame = pd.DataFrame()
     ) -> None:
         """Initialize the simulation"""
         self.name = name
@@ -39,6 +41,7 @@ class SimulationHome():
         self.granularity = granularity # time granularity in hours
         self.time = 0
         self.consider_neighboors = consider_neighboors
+        self.daily_switch_inputs_df = daily_switch_inputs_df
 
     def temperature_evolution_heating(self, temp_start, t_heating):
         """
@@ -52,7 +55,19 @@ class SimulationHome():
         """
         T_int(t) = T_ext + (T_0 - T_ext)*exp(-t/tau)
         """
-        return get_T_ext_w_voisin(self.T_ext, self.consider_neighboors) + (temp_start - get_T_ext_w_voisin(self.T_ext, self.consider_neighboors))*np.exp(-(t_cooling)/self.tau)
+        Tlim =  get_T_ext_w_voisin(self.T_ext, self.consider_neighboors)
+        return Tlim + (temp_start - Tlim)*np.exp(-(t_cooling)/self.tau)
+    
+    def cooling(self, temp_start, t_init, t_end):
+        time = t_init
+        temperature = temp_start
+        is_heating = False
+        data = [[time, temperature, is_heating]]
+        while time < t_end:
+            time += self.granularity
+            temperature = self.temperature_evolution_cooling(temperature, self.granularity)
+            data += [[time, temperature, is_heating]]
+        return data
     
     def thermostat(self, temp_start, T_target, t_init, t_end, hysteresis = 0.4):
         time = t_init
@@ -98,6 +113,7 @@ class SimulationHome():
         data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=17, t_end=24, hysteresis=.4)
         return data
     
+    # TODO: remove T_target and replace it with self.T_target
     def scenario_full_thermostat(self, T_target):
         """
         Thermostat tout le temps
@@ -107,6 +123,50 @@ class SimulationHome():
         is_heating = False
         data = [[time, temperature, is_heating]]
         data += self.thermostat(temp_start=temperature, T_target=T_target, t_init=time, t_end=24, hysteresis=.4)
+        return data    
+    
+    def scenario_from_switch_inputs(self, daily_switch_inputs_df):
+        """
+        Provide simulation's outputs from real switch inputs for further comparison and testing of the modelisation
+
+        Args:
+            daily_switch_inputs_df: pd.Dataframe with columns [time, temperature, switch]
+            
+        Returns:
+            data: List with data points for further plotting/processing
+        """
+        def get_time_of_event(df, granularity):
+            time_df = (
+                df.copy()
+                .assign(time_start=lambda df: df["date"].dt.hour + (granularity * ((df["date"].dt.minute / 60) // granularity)),
+                        date_stop=lambda df: df["date"] + df["time_delta_after_switch"],
+                        time_stop=lambda df: df["date_stop"].dt.hour + (granularity * ((df["date_stop"].dt.minute / 60) // granularity)))
+            )
+            return time_df
+        
+        inputs_df = get_time_of_event(daily_switch_inputs_df, self.granularity)
+        inputs_df.iloc[-1]["time_stop"] = 24
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(daily_switch_inputs_df[["state", "date", "time_delta_after_switch"]])
+        with col2:
+            st.dataframe(inputs_df[["state", "time_start", "time_stop"]])
+        init_state = inputs_df.loc[0, "state"]
+        time_first_event = inputs_df.loc[0, "time_start"]
+        # BEFORE FIRST SWITCH EVENT OF THE DAY
+        if init_state == "off":
+            data = self.thermostat(temp_start=self.T_0, T_target=self.T_target, t_init=0, t_end=time_first_event, hysteresis = 0.4)
+        elif init_state == "on":
+            data = self.cooling(temp_start=self.T_0, t_init=0, t_end=time_first_event)
+        else:
+            print("---ERROR ERROR ERROR---")
+        
+        # THEN
+        for _, switch_event in inputs_df.iterrows():
+            if switch_event["state"] == "on":
+                data += self.thermostat(temp_start=data[-1][1], T_target=self.T_target, t_init=switch_event["time_start"], t_end=switch_event["time_stop"], hysteresis = 0.4)
+            elif switch_event["state"] == "off":
+                data += self.cooling(temp_start=data[-1][1], t_init=switch_event["time_start"], t_end=switch_event["time_stop"])
         return data
     
     def pick_scenario(self, scenario_name):
@@ -114,6 +174,8 @@ class SimulationHome():
             return self.scenario_full_thermostat(T_target=self.T_target)
         elif scenario_name=="Thermostat de 7 à 9 puis 17 à minuit":
             return self.scenario_1(T_target=self.T_target)
+        elif scenario_name=="Real inputs":
+            return self.scenario_from_switch_inputs(daily_switch_inputs_df=self.daily_switch_inputs_df)
     
     def plot_data(self, df: pd.DataFrame):
         fig = go.Figure()

@@ -2,7 +2,7 @@ import streamlit as st
 import datetime as dt
 import pandas as pd
 from utils.get_data import get_history, build_history_df
-from utils.display import display_time_series
+from utils.display import display_time_series, display_simu_vs_truth
 from utils.forecast import get_weather, analyze_temperature_correlations
 from utils.base import HomeModule
 from utils.scenario import SimulationHome, SCENARIOS
@@ -61,7 +61,11 @@ def welcome_page():
         st.markdown(f"total_periods: {dict_C['total_periods']}")
 
     with st.expander("Get daily heating consumption"):
-        st.dataframe(maison_caussa.get_daily_consumption())
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(maison_caussa.get_daily_consumption())
+        with col2:
+            st.dataframe(maison_caussa.switch_df)            
     
     with st.expander(f"Launch simulations"):
         with st.form("Simulation's parameter's"):
@@ -78,9 +82,9 @@ def welcome_page():
                 T_target=T_target,
                 mean_consumption=2500,
                 tau=maison_caussa.tau,
-                C=1100,#maison_caussa.C,
+                C=maison_caussa.C,
                 granularity=.25
-            )
+                )
             data = simu.pick_scenario(scenario)
             df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
             df = df.drop_duplicates(ignore_index=True)
@@ -98,7 +102,28 @@ def welcome_page():
                     value=f"{simu.time_to_target(delta_T=delta_T)} min", 
                     border=True
                     )
-    
+
+    with st.expander(f"Simu vs réalité"):
+        with st.form("Select day and target"):
+            T_target = st.number_input("Target temperature for your home", min_value=5, max_value=30, value=20)
+            day = st.date_input("Choose a daily comparison", value=dt.datetime(2025, 1, 15))
+            launch_btn = st.form_submit_button("Launch simulation")
+        if launch_btn:
+            switch_df = maison_caussa.switch_df
+            temp_df = maison_caussa.temperature_int_df
+            day = dt.date(day.year, day.month, day.day)
+            temp_ext = maison_caussa.get_temperature_ext(
+                t0=pd.to_datetime(day).tz_localize('UTC').replace(hour=0, minute=0, second=0),
+                t1=pd.to_datetime(day).tz_localize('UTC').replace(hour=23, minute=59, second=59)
+            )
+            display_simu_vs_truth(
+                T_target=T_target, 
+                T_ext=temp_ext, 
+                tau=maison_caussa.tau, 
+                C=maison_caussa.C, 
+                daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
+                daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True)
+                )
     button = st.button("get weather")
     if button:
         weather_df = get_weather()

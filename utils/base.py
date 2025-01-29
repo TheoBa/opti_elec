@@ -50,7 +50,20 @@ class HomeModule():
             .assign(
                 date=lambda df: pd.to_datetime(df['date']),
                 time_delta_before_switch=lambda df: df['date'].diff(),
-                time_delta_after_switch=lambda df: -df['date'].diff(-1)
+                time_delta_after_switch=lambda df: -df['date'].diff(-1),
+                day=lambda df: df['date'].dt.date
+            )
+        )
+        self.temperature_ext_df = (self.temperature_ext_df
+            .assign(
+                date=lambda df: pd.to_datetime(df['date']),
+                day=lambda df: df['date'].dt.date
+            )
+        )
+        self.temperature_int_df = (self.temperature_int_df
+            .assign(
+                date=lambda df: pd.to_datetime(df['date']),
+                day=lambda df: df['date'].dt.date
             )
         )
 
