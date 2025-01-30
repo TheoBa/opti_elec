@@ -344,7 +344,7 @@ def _verify_switches(self, switch_events, is_cooling=True):
             with col2:
                 event_to_metric = {"switch_offs": {"name": "tau", "values": st.session_state.tau_values}, "switch_ons": {"name": "C", "values": st.session_state.C_values}}
                 st.metric(
-                    label=f"Associated computed {event_to_metric[event_type]["name"]}",
+                    label=f"Associated computed {event_to_metric[event_type]['name']}",
                     value = round(event_to_metric[event_type]["values"][idx], 1)
                 )
                 selections[idx] = st.radio(

@@ -82,7 +82,7 @@ def _update_db(self):
             column_names={"last_changed": "date"}
         data = get_history(entity_id, days_delta=self.days_delta)
         df = build_history_df(data, column_names=column_names)
-        self.populate_df(df, f"data/db/{entity_id.split(".")[1]}.csv")
+        self.populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
 
 def _populate_df(self, df_new: pd.DataFrame, csv_path: str):
     """
