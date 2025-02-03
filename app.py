@@ -90,7 +90,7 @@ def welcome_page():
             df = df.drop_duplicates(ignore_index=True)
             uptime, conso = simu.get_daily_consumption(df)
             st.markdown(f"tau: {simu.tau} - C: {simu.C} - ratio: {round(100 * simu.tau/simu.C, 2)}%")
-            st.markdown(f"Heaters uptime: {uptime} (h) - Conso: {conso} (kWh)")
+            st.markdown(f"Heaters uptime: {round(uptime, 2)} (h) - Conso: {round(conso, 2)} (kWh)")
             fig = simu.plot_data(df)
             col1, col2 = st.columns([4, 1])
             with col1:
@@ -105,7 +105,6 @@ def welcome_page():
 
     with st.expander(f"Simu vs truth"):
         with st.form("Select day and target"):
-            T_target = st.number_input("Target temperature for your home", min_value=5, max_value=30, value=20)
             day = st.date_input("Choose a daily comparison", value=dt.datetime(2025, 1, 15))
             launch_btn = st.form_submit_button("Launch simulation")
         if launch_btn:
@@ -118,10 +117,9 @@ def welcome_page():
                 t1=pd.to_datetime(day).tz_localize('UTC').replace(hour=23, minute=59, second=59)
             )
             display_simu_vs_truth(
-                T_target=T_target, 
                 T_ext=temp_ext, 
-                tau=maison_caussa.tau, 
-                C=1100, #maison_caussa.C, 
+                tau=14, 
+                C=900,
                 daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
                 daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
                 daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)

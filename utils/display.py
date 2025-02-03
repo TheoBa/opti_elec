@@ -251,13 +251,13 @@ def display_time_series():
         if combined_fig:
             st.plotly_chart(combined_fig, use_container_width=True)
 
-def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily_temp_int, daily_conso):
+def display_simu_vs_truth(T_ext, tau, C, daily_switch_inputs_df, daily_temp_int, daily_conso):
     simulation = SimulationHome()
     simulation.init(
         name='simu vs réalité',
         T_0=daily_temp_int.loc[0, "temperature"],
         T_ext=T_ext,
-        T_target=T_target,
+        T_target=10000, #don't care
         mean_consumption=2500,
         tau=tau,
         C=C,
@@ -268,11 +268,10 @@ def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily
     df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
     df = df.drop_duplicates(ignore_index=True)
     uptime, conso = simulation.get_daily_consumption(df)
-    st.markdown(f"tau: {simulation.tau} - C: {simulation.C} - ratio: {round(100 * simulation.tau/simulation.C, 2)}%")
-    st.markdown(f"Heaters uptime: {uptime} (h) - Conso: {conso} (kWh)")
+    st.markdown(f"Heaters uptime: {round(uptime, 2)} (h) - Conso: {round(conso, 2)} (kWh)")
     daily_temp_int["time"] = daily_temp_int["date"].dt.hour + round(daily_temp_int["date"].dt.minute / 60, 2)
 
-    fig = simulation.plot_data(df)
+    fig = simulation.plot_data(df, is_comfort_zone=False)
     fig.add_trace(
         go.Scatter(
             x=daily_temp_int['time'],
@@ -286,12 +285,6 @@ def display_simu_vs_truth(T_target, T_ext, tau, C, daily_switch_inputs_df, daily
     with col1:
         st.plotly_chart(fig)
     with col2:
-        delta_T = 6
-        st.metric(
-            f"Time to heat {delta_T}°", 
-            value=f"{simulation.time_to_target(delta_T=delta_T)} min", 
-            border=True
-            )
         st.metric(
             f"Simulated daily conso",
             value=f"{round(daily_conso.iloc[0], 2)} kWh",

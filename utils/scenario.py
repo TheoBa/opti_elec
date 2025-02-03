@@ -62,10 +62,21 @@ class SimulationHome():
         time = t_init
         temperature = temp_start
         is_heating = False
-        data = [[time, temperature, is_heating]]
+        data = []
         while time < t_end:
             time += self.granularity
             temperature = self.temperature_evolution_cooling(temperature, self.granularity)
+            data += [[time, temperature, is_heating]]
+        return data
+    
+    def heating(self, temp_start, t_init, t_end):
+        time = t_init
+        temperature = temp_start
+        is_heating = True
+        data = []
+        while time < t_end:
+            time += self.granularity
+            temperature = self.temperature_evolution_heating(temperature, self.granularity)
             data += [[time, temperature, is_heating]]
         return data
     
@@ -146,16 +157,20 @@ class SimulationHome():
         
         inputs_df = get_time_of_event(daily_switch_inputs_df, self.granularity)
         inputs_df.iloc[-1]["time_stop"] = 24
-        col1, col2 = st.columns(2)
-        with col1:
-            st.dataframe(daily_switch_inputs_df[["state", "date", "time_delta_after_switch"]])
-        with col2:
-            st.dataframe(inputs_df[["state", "time_start", "time_stop"]])
         init_state = inputs_df.loc[0, "state"]
         time_first_event = inputs_df.loc[0, "time_start"]
+        
+        # TODO: bugfix when switched ON / OFF real fast
+        if True:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.dataframe(daily_switch_inputs_df)
+            with col2:
+                st.dataframe(inputs_df)
+
         # BEFORE FIRST SWITCH EVENT OF THE DAY
         if init_state == "off":
-            data = self.thermostat(temp_start=self.T_0, T_target=self.T_target, t_init=0, t_end=time_first_event, hysteresis = 0.4)
+            data = self.heating(temp_start=self.T_0, t_init=0, t_end=time_first_event)
         elif init_state == "on":
             data = self.cooling(temp_start=self.T_0, t_init=0, t_end=time_first_event)
         else:
@@ -164,9 +179,12 @@ class SimulationHome():
         # THEN
         for _, switch_event in inputs_df.iterrows():
             if switch_event["state"] == "on":
-                data += self.thermostat(temp_start=data[-1][1], T_target=self.T_target, t_init=switch_event["time_start"], t_end=switch_event["time_stop"], hysteresis = 0.4)
+                data += self.heating(temp_start=data[-1][1], t_init=switch_event["time_start"], t_end=switch_event["time_stop"])
             elif switch_event["state"] == "off":
                 data += self.cooling(temp_start=data[-1][1], t_init=switch_event["time_start"], t_end=switch_event["time_stop"])
+        
+        # FINALLY
+        data += self.cooling(temp_start=data[-1][1], t_init=data[-1][0], t_end=24)
         return data
     
     def pick_scenario(self, scenario_name):
@@ -177,32 +195,33 @@ class SimulationHome():
         elif scenario_name=="Real inputs":
             return self.scenario_from_switch_inputs(daily_switch_inputs_df=self.daily_switch_inputs_df)
     
-    def plot_data(self, df: pd.DataFrame):
+    def plot_data(self, df: pd.DataFrame, is_comfort_zone=True):
         fig = go.Figure()
 
-        # Add comfort zone shaded area
-        fig.add_trace(
-            go.Scatter(
-                x=[0, 24],  # Full time range
-                y=[self.T_target + 1, self.T_target + 1],
-                fill=None,
-                mode='lines',
-                line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
-                showlegend=False,
-                hoverinfo='skip'
+        if is_comfort_zone:
+            # Add comfort zone shaded area
+            fig.add_trace(
+                go.Scatter(
+                    x=[0, 24],  # Full time range
+                    y=[self.T_target + 1, self.T_target + 1],
+                    fill=None,
+                    mode='lines',
+                    line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
+                    showlegend=False,
+                    hoverinfo='skip'
+                )
             )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=[0, 24],  # Full time range
-                y=[self.T_target - 1, self.T_target - 1],
-                fill='tonexty',
-                mode='lines',
-                line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
-                name='Comfort Zone',
-                hoverinfo='skip'
+            fig.add_trace(
+                go.Scatter(
+                    x=[0, 24],  # Full time range
+                    y=[self.T_target - 1, self.T_target - 1],
+                    fill='tonexty',
+                    mode='lines',
+                    line=dict(color='rgba(168, 168, 168, 0.3)', width=0),
+                    name='Comfort Zone',
+                    hoverinfo='skip'
+                )
             )
-        )
 
         # Add external temperature line
         fig.add_trace(
