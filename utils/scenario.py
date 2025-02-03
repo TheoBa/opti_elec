@@ -161,7 +161,7 @@ class SimulationHome():
         time_first_event = inputs_df.loc[0, "time_start"]
         
         # TODO: bugfix when switched ON / OFF real fast
-        if True:
+        if False:
             col1, col2 = st.columns(2)
             with col1:
                 st.dataframe(daily_switch_inputs_df)

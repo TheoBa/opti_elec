@@ -281,14 +281,28 @@ def display_simu_vs_truth(T_ext, tau, C, daily_switch_inputs_df, daily_temp_int,
             yaxis="y"
         )
     )
+    df["date"] = daily_temp_int.loc[0, "date"].floor('D') + pd.to_timedelta(df['time'], unit='h')
+    df['date'] = pd.to_datetime(df['date'])
+    daily_temp_int['date'] = pd.to_datetime(daily_temp_int['date'])
+
+    cross_correlation = calculate_cross_correlation(df[["date", "temperature"]], daily_temp_int[["date", "temperature"]])
+    
+
     col1, col2 = st.columns([4, 1])
     with col1:
         st.plotly_chart(fig)
     with col2:
         st.metric(
-            f"Simulated daily conso",
-            value=f"{round(daily_conso.iloc[0], 2)} kWh",
-            delta=round(daily_conso.iloc[0] - conso, 2),
+            f"Cross correlation",
+            value=f"{round(cross_correlation, 2)}",
             border=True
         )
-    return
+
+    
+def calculate_cross_correlation(df1, df2):
+    df1_resampled = df1.set_index('date').resample('15min').mean().interpolate()
+    df2_resampled = df2.set_index('date').resample('15min').mean().interpolate()
+    aligned_df_1, aligned_df_2 = df1_resampled.align(df2_resampled, join='inner')
+    st.dataframe(aligned_df_1)
+    st.dataframe(aligned_df_2)
+    return aligned_df_1["temperature"].corr(aligned_df_2["temperature"], method='pearson') #kendall x pearson x spearman
