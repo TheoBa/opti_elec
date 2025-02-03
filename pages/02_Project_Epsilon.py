@@ -230,6 +230,8 @@ with st.container():
         launch_btn = st.form_submit_button("Launch simulation")
     
     if launch_btn:
+        maison_caussa.compute_tau()
+        maison_caussa.compute_C()
         simu = SimulationHome()
         simu.init(
             name='scenario1',
@@ -239,25 +241,18 @@ with st.container():
             mean_consumption=2500,
             tau=maison_caussa.tau,
             C=maison_caussa.C,
-            granularity=.25
+            granularity=.1
         )
         data = simu.pick_scenario(scenario)
         df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
         df = df.drop_duplicates(ignore_index=True)
         uptime, conso = simu.get_daily_consumption(df)
-        st.markdown(f"tau: {simu.tau} - C: {simu.C} - ratio: {round(100 * simu.tau/simu.C, 2)}%")
-        st.markdown(f"Heaters uptime: {uptime} (h) - Conso: {conso} (kWh)")
+        st.markdown(f"Heaters uptime: {round(uptime, 2)} (h) - Conso: {round(conso, 2)} (kWh)")
         fig = simu.plot_data(df)
         col1, col2 = st.columns([4, 1])
         with col1:
             st.plotly_chart(fig)
-        with col2:
-            delta_T = 6
-            st.metric(
-                f"Time to heat {delta_T}°", 
-                value=f"{simu.time_to_target(delta_T=delta_T)} min", 
-                border=True
-            )
+        
 
 # Section 4: Alerts & Recommendations
 with st.container():
