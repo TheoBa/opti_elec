@@ -118,8 +118,8 @@ def welcome_page():
             )
             display_simu_vs_truth(
                 T_ext=temp_ext, 
-                tau=14, 
-                C=900,
+                tau=maison_caussa.tau, 
+                C=maison_caussa.C,
                 daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
                 daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
                 daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
