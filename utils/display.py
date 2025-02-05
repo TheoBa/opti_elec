@@ -296,6 +296,12 @@ def display_simu_vs_truth(T_ext, tau, C, daily_switch_inputs_df, daily_temp_int,
             value=f"{round(cross_correlation, 2)}",
             border=True
         )
+        rmse = calculate_rmse(df[["date", "temperature"]], daily_temp_int[["date", "temperature"]])
+        st.metric(
+            f"Root Mean Square Error",
+            value=f"{round(rmse, 2)}",
+            border=True
+        )
 
     
 def calculate_cross_correlation(df1, df2):
@@ -303,3 +309,12 @@ def calculate_cross_correlation(df1, df2):
     df2_resampled = df2.set_index('date').resample('15min').mean().interpolate()
     aligned_df_1, aligned_df_2 = df1_resampled.align(df2_resampled, join='inner')
     return aligned_df_1["temperature"].corr(aligned_df_2["temperature"], method='pearson') #kendall x pearson x spearman
+
+def calculate_rmse(df1, df2):
+    df1_resampled = df1.set_index('date').resample('15min').mean().interpolate()
+    df2_resampled = df2.set_index('date').resample('15min').mean().interpolate()
+    aligned_df_1, aligned_df_2 = df1_resampled.align(df2_resampled, join='inner')
+    squared_errors = (aligned_df_1["temperature"] - aligned_df_2["temperature"]) ** 2
+    mse = squared_errors.mean()
+    rmse = mse ** 0.5
+    return rmse
