@@ -132,7 +132,26 @@ def welcome_page():
     with st.expander(f"Weather"):
         day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
         temp_forecast = latest_temp_forecast(maison_caussa.weather_forecast_df, day)
-
+        simu = SimulationHome()
+        simu.init(
+            name='predict conso',
+            T_0=17,
+            T_ext=temp_forecast,
+            T_target=17,
+            mean_consumption=2500,
+            tau=maison_caussa.tau,
+            C=maison_caussa.C,
+            granularity=.25
+            )
+        data = simu.pick_scenario("Thermostat de 7 à 9 puis 17 à minuit")
+        df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
+        df = df.drop_duplicates(ignore_index=True)
+        uptime, conso = simu.get_daily_consumption(df)
+        st.metric(
+                    f"Tomorrow's expected conso", 
+                    value=f"{conso} kWh", 
+                    border=True
+                    )
 
     button = st.button("get feature weather")
     if button:
