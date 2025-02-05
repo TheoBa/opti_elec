@@ -3,7 +3,7 @@ import datetime as dt
 import pandas as pd
 from utils.get_data import get_history, build_history_df
 from utils.display import display_time_series, display_simu_vs_truth
-from utils.forecast import get_weather, analyze_temperature_correlations
+from utils.forecast import get_weather, analyze_temperature_correlations, latest_temp_forecast
 from utils.base import HomeModule
 from utils.scenario import SimulationHome, SCENARIOS
 
@@ -129,7 +129,10 @@ def welcome_page():
     if button:
         weather_df = maison_caussa.update_weather_forecast()
         # day = dt.datetime.now().strftime('%Y-%m-%d')
-        st.dataframe(weather_df)
+    with st.expander(f"Weather"):
+        day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
+        temp_forecast = latest_temp_forecast(maison_caussa.weather_forecast_df, day)
+
 
     button = st.button("get feature weather")
     if button:

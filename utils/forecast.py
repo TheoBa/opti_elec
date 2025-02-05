@@ -79,3 +79,11 @@ def analyze_temperature_correlations(df):
     
     st.write("### Correlations with Uptime")
     return correlation_df
+
+def latest_temp_forecast(weather_df, day):
+    forecast_df = (
+        weather_df[["day", "all_day_temperature", "date"]][weather_df["day"] == day]
+        .sort_values(by='date')
+        .reset_index(drop=True)
+        )
+    return forecast_df["all_day_temperature"].loc[0]

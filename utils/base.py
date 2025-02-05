@@ -43,7 +43,7 @@ class HomeModule():
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
         self.temperature_int_df = pd.read_csv("data/db/capteur_salon_temperature.csv", sep=",")
         self.switch_df = pd.read_csv("data/db/radiateur_bureau_switch.csv", sep=",")
-        self.weather_forecast = pd.read_csv("data/db/forecasted_weather.csv", sep=",")
+        self.weather_forecast_df = pd.read_csv("data/db/forecasted_weather.csv", sep=",")
         self.prepare_df()
 
     def prepare_df(self):
