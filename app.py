@@ -39,8 +39,9 @@ def welcome_page():
 
     st.markdown("Compute Tau and C for given HomeModule")
     with st.expander("Tau and C computation"):
+        st.session_state['verification_mode'] = False
         # Use verified switches if available, otherwise use all switches
-        if 'verified_switches' in st.session_state:
+        if st.session_state.get('verification_heating_done', False) & st.session_state.get('verification_cooling_done', False):
             st.info("Using verified switch events. To modify selections, visit the Data Verification page.")
         else:
             st.info("Using all switch events. For more accurate results, consider verifying events in the Data Verification page.")

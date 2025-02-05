@@ -16,8 +16,9 @@ def _identify_switch_offs(self):
     # Check if we're in verification mode (on the verification page)
     if st.session_state.get('verification_mode', False):
         self.selected_switches_off = self.verify_switches(potential_switches, is_cooling=True)
-    else:
-        # Original behavior - use all potential switches
+    elif st.session_state.get('verification_heating_done', False) & st.session_state.get('verification_cooling_done', False):
+        return self.selected_switches_off
+    else: # Original behavior - use all potential switches
         self.selected_switches_off = potential_switches
         
     return self.selected_switches_off
@@ -366,8 +367,12 @@ def _verify_switches(self, switch_events, is_cooling=True):
             
             verified_df = pd.DataFrame(verified_events)
             st.session_state.verified_switches[cache_key] = verified_df
+            st.session_state[f'verification_{cooling_heating(is_cooling)}_done'] = True
             st.success("Selections saved successfully!")
             return verified_df
             
         # If form not submitted yet, return empty DataFrame
         return pd.DataFrame(columns=switch_events.columns)
+
+def cooling_heating(is_cooling):
+    return "cooling" if is_cooling else "heating"
