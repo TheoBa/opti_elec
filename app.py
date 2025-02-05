@@ -173,7 +173,7 @@ def welcome_page():
 
         with st.form("Select day for opti"):
             day = st.date_input("Choose a daily comparison", value=dt.datetime(2025, 1, 15))
-            method = st.selectbox('Optimization Method',['all', 'local', 'global'])
+            method = st.selectbox('Optimization Method', ['all', 'local', 'global'], index=2)
             launch_btn = st.form_submit_button("Launch simulation")
 
         if launch_btn:
@@ -246,6 +246,16 @@ def welcome_page():
                     st.subheader(method)
                     st.write(f"Parameters: {result['parameters']}")
                     st.write(f"RMSE: {result['rmse']:.6f}")
+
+            conso_df = maison_caussa.get_daily_consumption()
+            display_simu_vs_truth(
+                T_ext=temp_ext, 
+                tau=result['parameters'][0], 
+                C=result['parameters'][1],
+                daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
+                daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
+                daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
+                )
         
         
 
