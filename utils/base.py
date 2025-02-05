@@ -3,7 +3,7 @@ from utils.get_data import _update_db, _populate_df
 from utils.inertie_thermique import _identify_switch_offs, _identify_switch_ons, _compute_C,\
     _select_temperature_after_switch, _identify_min_max, _get_temperature_ext, _compute_tau, \
     _get_daily_consumption, _compute_tau2, _verify_switches
-from utils.forecast import _build_forecast_features
+from utils.forecast import _build_forecast_features, get_weather
 
 
 class HomeModule():
@@ -43,6 +43,7 @@ class HomeModule():
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
         self.temperature_int_df = pd.read_csv("data/db/capteur_salon_temperature.csv", sep=",")
         self.switch_df = pd.read_csv("data/db/radiateur_bureau_switch.csv", sep=",")
+        self.weather_forecast = pd.read_csv("data/db/forecasted_weather.csv", sep=",")
         self.prepare_df()
 
     def prepare_df(self):
@@ -99,3 +100,11 @@ class HomeModule():
 
     def build_forecast_features(self):
         return _build_forecast_features(self)
+    
+    def update_weather_forecast(self):
+        weather_df = get_weather()
+        weather_df = weather_df.reset_index()
+        # 'date' column corresponds to the forecast date as it is subject to change through time
+        weather_df['date'] = pd.to_datetime('today').date()
+        self.populate_df(weather_df, f"data/db/forecasted_weather.csv")
+        return weather_df

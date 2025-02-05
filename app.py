@@ -37,7 +37,6 @@ def welcome_page():
         maison_caussa.update_db()
     maison_caussa.load_df()
 
-    st.markdown("Compute Tau and C for given HomeModule")
     with st.expander("Tau and C computation"):
         st.session_state['verification_mode'] = False
         # Use verified switches if available, otherwise use all switches
@@ -125,11 +124,11 @@ def welcome_page():
                 daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
                 daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
                 )
+    
     button = st.button("get weather")
     if button:
-        weather_df = get_weather()
+        weather_df = maison_caussa.update_weather_forecast()
         # day = dt.datetime.now().strftime('%Y-%m-%d')
-        # weather_df.to_csv(f"data/meteo_forecast_{day}.csv", index=False)
         st.dataframe(weather_df)
 
     button = st.button("get feature weather")
