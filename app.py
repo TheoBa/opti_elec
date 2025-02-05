@@ -118,8 +118,8 @@ def welcome_page():
             )
             display_simu_vs_truth(
                 T_ext=temp_ext, 
-                tau=maison_caussa.tau, 
-                C=maison_caussa.C,
+                tau=9.41, #maison_caussa.tau, 
+                C=880, #maison_caussa.C,
                 daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True),
                 daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True),
                 daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
@@ -165,6 +165,89 @@ def welcome_page():
     with st.expander("Display time series"):
         display_time_series()
 
+    # Display time series plots
+    with st.expander('Parameter Optimization Dashboard'):
+        from utils.parameters_opti import optimize_parameters
+        from utils.display import calculate_rmse
+
+
+        with st.form("Select day for opti"):
+            day = st.date_input("Choose a daily comparison", value=dt.datetime(2025, 1, 15))
+            method = st.selectbox('Optimization Method',['all', 'local', 'global'])
+            launch_btn = st.form_submit_button("Launch simulation")
+
+        if launch_btn:
+            switch_df = maison_caussa.switch_df
+            temp_df = maison_caussa.temperature_int_df
+            day = dt.date(day.year, day.month, day.day)
+            temp_ext = maison_caussa.get_temperature_ext(
+                t0=pd.to_datetime(day).tz_localize('UTC').replace(hour=0, minute=0, second=0),
+                t1=pd.to_datetime(day).tz_localize('UTC').replace(hour=23, minute=59, second=59)
+            )
+            daily_switch_inputs_df=switch_df[switch_df.day==day].reset_index(drop=True)
+            daily_temp_int=temp_df[temp_df.day==day].reset_index(drop=True)
+            parameters = [maison_caussa.tau, maison_caussa.C]
+
+            def my_model(parameters, daily_switch_inputs_df, daily_temp_int):          
+                simulation = SimulationHome()
+                simulation.init(
+                    name='simu vs réalité',
+                    T_0=daily_temp_int.loc[0, "temperature"],
+                    T_ext=temp_ext,
+                    T_target=10000, #don't care
+                    mean_consumption=2500,
+                    tau=parameters[0],
+                    C=parameters[1],
+                    granularity=.25,
+                    daily_switch_inputs_df=daily_switch_inputs_df
+                )
+                
+                data = simulation.pick_scenario("Real inputs")
+                df = pd.DataFrame(data, columns=["time", "temperature", "switch"])
+                df = df.drop_duplicates(ignore_index=True)
+                return df
+        
+            # Define your RMSE function
+            def rmse_function(parameters, daily_switch_inputs_df, daily_temp_int):
+                df1 = my_model(parameters, daily_switch_inputs_df, daily_temp_int)
+                df1["date"] = daily_temp_int.loc[0, "date"].floor('D') + pd.to_timedelta(df1['time'], unit='h')
+                df1['date'] = pd.to_datetime(df1['date'])
+                daily_temp_int['date'] = pd.to_datetime(daily_temp_int['date']) 
+                rmse = calculate_rmse(df1[["date", "temperature"]], daily_temp_int[["date", "temperature"]])
+                return rmse
+            
+            # Set up optimization parameters
+            initial_guess = [maison_caussa.tau, maison_caussa.C]
+            bounds = [(0, 100), (0, 5000)]
+
+            # Create fixed parameters dictionary
+            fixed_params = {
+                'daily_switch_inputs_df': daily_switch_inputs_df,
+                'daily_temp_int': daily_temp_int
+            }
+
+            df1 = my_model(parameters, daily_switch_inputs_df, daily_temp_int)
+
+            # Run optimization
+            results = optimize_parameters(
+                rmse_function=rmse_function,
+                initial_guess=initial_guess,
+                bounds=bounds,
+                fixed_params=fixed_params,
+                method='all'
+            )
+            
+            results = optimize_parameters(rmse_function, initial_guess, bounds, fixed_params, method=method)
+
+            # Display results
+            st.header('Optimization Results')
+            for method, result in results.items():
+                if isinstance(result, dict) and result['success']:
+                    st.subheader(method)
+                    st.write(f"Parameters: {result['parameters']}")
+                    st.write(f"RMSE: {result['rmse']:.6f}")
+        
+        
 
 if __name__=="__main__":
     welcome_page()

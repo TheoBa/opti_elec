@@ -12,6 +12,7 @@ streamlit = "^1.40.2"
 requests = "^2.32.3"
 pymeteosource = "^1.7.0"
 plotly = "^5.24.1"
+scipy = "^1.15.1"
 
 
 [build-system]
