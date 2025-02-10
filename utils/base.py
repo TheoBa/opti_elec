@@ -3,7 +3,7 @@ import datetime as dt
 import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
-from utils.get_data import _update_db, _populate_df
+from utils.get_data import get_history, build_history_df, populate_df
 from utils.forecast import _build_forecast_features, get_weather
 from utils.thermal_modelisation import get_T_ext_w_voisin
 
@@ -36,10 +36,15 @@ class HomeModule():
         self.consider_neighboors = consider_neighboors
 
     def update_db(self):
-        return _update_db(self)
-
-    def populate_df(self, df_new: pd.DataFrame, csv_path: str):
-        return _populate_df(df_new, csv_path)
+        """A terme cette function sera appellée ponctuellement pour populer la base de donnée avec les données les plus récentes"""
+        for entity_id in self.ENTITY_IDS:
+            if entity_id.split(".")[0]=="sensor":
+                column_names={"state": "temperature", "last_changed": "date"}
+            else:
+                column_names={"last_changed": "date"}
+            data = get_history(entity_id, days_delta=self.days_delta)
+            df = build_history_df(data, column_names=column_names)
+            populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
 
     def load_df(self):
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
@@ -437,5 +442,5 @@ class HomeModule():
         weather_df = weather_df.reset_index()
         # 'date' column corresponds to the forecast date as it is subject to change through time
         weather_df['date'] = pd.to_datetime('today').date()
-        self.populate_df(weather_df, f"data/db/forecasted_weather.csv")
+        populate_df(weather_df, f"data/db/forecasted_weather.csv")
         return weather_df
