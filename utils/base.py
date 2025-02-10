@@ -2,8 +2,10 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import streamlit as st
+import plotly.graph_objects as go
 from utils.get_data import _update_db, _populate_df
 from utils.forecast import _build_forecast_features, get_weather
+from utils.thermal_modelisation import get_T_ext_w_voisin
 
 
 class HomeModule():
@@ -265,18 +267,6 @@ class HomeModule():
         temp_slice = self.temperature_ext_df[mask]
         T_ext = temp_slice['temperature'].mean()
         return T_ext
-
-    def get_T_ext_w_voisin(T_ext, consider_neighboors=True):
-        if consider_neighboors:
-            if T_ext>10:
-                T_lim = T_ext
-            elif T_ext>0:
-                T_lim = 10
-            else:
-                T_lim = T_ext + 10
-            return T_lim
-        else:
-            return T_ext
     
     def compute_tau(self):
         """

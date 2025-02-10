@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from utils.inertie_thermique import get_T_ext_w_voisin
+from utils.thermal_modelisation import get_T_ext_w_voisin
 
 
 SCENARIOS = {
