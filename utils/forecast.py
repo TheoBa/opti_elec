@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 from pymeteosource.api import Meteosource
-from pymeteosource.types import tiers,sections
-import plotly.express as px
-import plotly.graph_objects as go
+from pymeteosource.types import tiers, sections
+import datetime as dt
 
 
 def get_weather():
@@ -87,3 +86,56 @@ def latest_temp_forecast(weather_df, day):
         .reset_index(drop=True)
         )
     return forecast_df["all_day_temperature"].loc[0]
+
+def get_past_weather_data(
+        date_from=dt.datetime(2025, 1, 3),
+        date_to=dt.datetime(2025, 2, 6),
+        lat=48.864716,
+        lon=2.349014
+        ):
+    YOUR_API_KEY = st.secrets["API_WEATHER"]
+    YOUR_TIER = tiers.FREE
+    meteosource = Meteosource(YOUR_API_KEY, YOUR_TIER)
+
+def get_past_weather_data2(past_days=5, forecast_days=3):
+    import openmeteo_requests
+
+    import requests_cache
+    import pandas as pd
+    from retry_requests import retry
+
+    # Setup the Open-Meteo API client with cache and retry on error
+    cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+    retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+    openmeteo = openmeteo_requests.Client(session = retry_session)
+
+    # Make sure all required weather variables are listed here
+    # The order of variables in hourly or daily is important to assign them correctly below
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": 48.864716,
+        "longitude": 2.349014,
+        "hourly": ["temperature_2m", "cloud_cover", "is_day", "direct_radiation"],
+	    "timezone": "auto",
+        "past_days": past_days,
+        "forecast_days": forecast_days
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    response = responses[0]
+    hourly = response.Hourly()
+
+    hourly_variables = [hourly.Variables(i).ValuesAsNumpy() for i in range(len(params["hourly"]))]
+
+    hourly_data = {"date": pd.date_range(
+        start = pd.to_datetime(hourly.Time(), unit = "s", utc = True),
+        end = pd.to_datetime(hourly.TimeEnd(), unit = "s", utc = True),
+        freq = pd.Timedelta(seconds = hourly.Interval()),
+        inclusive = "left"
+    )}
+
+    for i, var in enumerate(params["hourly"]):
+        hourly_data[var] = hourly_variables[i]
+
+    hourly_dataframe = pd.DataFrame(data = hourly_data)
+    return hourly_dataframe
