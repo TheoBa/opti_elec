@@ -22,6 +22,8 @@ def prepare_data(file_path: str) -> pd.DataFrame:
     
     if 'state' in df.columns:
         df['state'] = df['state'].map({'on': 1, 'off': 0})  # Convert to binary
+    elif 'temperature_2m' in df.columns:
+        df['temperature_2m'] = pd.to_numeric(df['temperature_2m'], errors='coerce')
     else:
         df['temperature'] = pd.to_numeric(df['temperature'], errors='coerce')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -154,6 +156,7 @@ def create_combined_graph(data_dir: str, day_min: dt.datetime, day_max: dt.datet
     try:
         living_room_df = filter_date_range(prepare_data(f'{data_dir}/capteur_salon_temperature.csv'), day_min, day_max)
         outside_df = filter_date_range(prepare_data(f'{data_dir}/paris_17eme_arrondissement_temperature.csv'), day_min, day_max)
+        outside_df2 = filter_date_range(prepare_data(f'{data_dir}/past_weather.csv'), day_min, day_max)
         heating_df = filter_date_range(prepare_data(f'{data_dir}/radiateur_bureau_switch.csv'), day_min, day_max)
         
         # Create figure with secondary y-axis
@@ -174,6 +177,15 @@ def create_combined_graph(data_dir: str, day_min: dt.datetime, day_max: dt.datet
                 y=outside_df['temperature'],
                 name='Outside',
                 line=dict(color='gray')
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=outside_df2['timestamp'],
+                y=outside_df2['temperature_2m'],
+                name='Outside',
+                line=dict(color='red')
             )
         )
         
