@@ -1,9 +1,9 @@
 import streamlit as st
 import datetime as dt
 import pandas as pd
-from utils.get_data import get_history, build_history_df
+from utils.get_data import populate_df
 from utils.display import display_time_series, display_simu_vs_truth
-from utils.forecast import get_weather, analyze_temperature_correlations, latest_temp_forecast
+from utils.forecast import get_past_weather_data2, analyze_temperature_correlations, latest_temp_forecast
 from utils.base import HomeModule
 from utils.scenario import SimulationHome, SCENARIOS
 
@@ -127,13 +127,8 @@ def welcome_page():
     
     button = st.button("get past weather")
     if button:
-        from utils.forecast import get_past_weather_data2
-        from utils.get_data import _populate_df
         df = get_past_weather_data2(past_days=50, forecast_days=0)
-        _populate_df(df, f"data/db/past_weather.csv")
-        # weather_df = maison_caussa.update_weather_forecast()
-        # st.dataframe(weather_df)
-        # day = dt.datetime.now().strftime('%Y-%m-%d')
+        populate_df(df, f"data/db/past_weather.csv")
     with st.expander(f"Weather"):
         day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
         temp_forecast = latest_temp_forecast(maison_caussa.weather_forecast_df, day)

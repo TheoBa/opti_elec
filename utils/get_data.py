@@ -73,18 +73,7 @@ def parse_data_string(data_string: str) -> dict:
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string: {e}")
 
-def _update_db(self):
-    """A terme cette function sera appellée ponctuellement pour populer la base de donnée avec les données les plus récentes"""
-    for entity_id in self.ENTITY_IDS:
-        if entity_id.split(".")[0]=="sensor":
-            column_names={"state": "temperature", "last_changed": "date"}
-        else:
-            column_names={"last_changed": "date"}
-        data = get_history(entity_id, days_delta=self.days_delta)
-        df = build_history_df(data, column_names=column_names)
-        self.populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
-
-def _populate_df(df_new: pd.DataFrame, csv_path: str):
+def populate_df(df_new: pd.DataFrame, csv_path: str):
     """
     Populate or update a CSV file with new data, avoiding duplicates.
     
