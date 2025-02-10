@@ -39,7 +39,7 @@ class HomeModule():
         return _update_db(self)
 
     def populate_df(self, df_new: pd.DataFrame, csv_path: str):
-        return _populate_df(self, df_new, csv_path)
+        return _populate_df(df_new, csv_path)
 
     def load_df(self):
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
