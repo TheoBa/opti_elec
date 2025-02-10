@@ -84,7 +84,7 @@ def _update_db(self):
         df = build_history_df(data, column_names=column_names)
         self.populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
 
-def _populate_df(self, df_new: pd.DataFrame, csv_path: str):
+def _populate_df(df_new: pd.DataFrame, csv_path: str):
     """
     Populate or update a CSV file with new data, avoiding duplicates.
     
