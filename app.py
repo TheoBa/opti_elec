@@ -125,9 +125,14 @@ def welcome_page():
                 daily_conso=conso_df.loc[conso_df.day==day, "conso (in kWh)"].reset_index(drop=True)
                 )
     
-    button = st.button("get weather")
+    button = st.button("get past weather")
     if button:
-        weather_df = maison_caussa.update_weather_forecast()
+        from utils.forecast import get_past_weather_data2
+        from utils.get_data import _populate_df
+        df = get_past_weather_data2(past_days=50, forecast_days=0)
+        _populate_df(df, f"data/db/past_weather.csv")
+        # weather_df = maison_caussa.update_weather_forecast()
+        # st.dataframe(weather_df)
         # day = dt.datetime.now().strftime('%Y-%m-%d')
     with st.expander(f"Weather"):
         day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
