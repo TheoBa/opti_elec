@@ -4,9 +4,10 @@ from src.data_processing import prepare_switch_df, prepare_temperature_df, prepa
 
 
 class TemperatureModel:
-    def __init__(self, initial_params):
+    def __init__(self, initial_params, P_consigne):
         self.features_df = None
-        self.params = initial_params
+        self.params = initial_params # Rth, C, alpha, Pvoisinnage
+        self.P_consigne = P_consigne
 
     def load_data(self, PATH_FILES):
         self.temperature_ext_df = pd.read_csv(PATH_FILES["temperature_ext_csv"], sep=",")
@@ -30,24 +31,52 @@ class TemperatureModel:
             .loc[lambda x: x["date"]> '2025-01-04']
         )
 
-    def estimate_parameters(self, t_data, Tint_data, Text_data, P_radiateur, is_switch_on, P_ensoleillement, alpha_initial):
-
-        def cost_function(params):
-            Tlim = Text_data + params[0] * (P_radiateur * is_switch_on + P_ensoleillement * params[1])
-            T0 = Tint_data[0]
-            T_pred = self.temperature_model(t_data, T0, Tlim, params[2], params[3])
-            return np.sum((Tint_data - T_pred) ** 2)
-        
-        self.estimated_params = ...  # Résultat de l'estimation
-
-    def predict(self, t):
-        # Méthode pour prédire la température à un instant t
-        Tlim = self.data['Text'] + self.estimated_params[0] * (
-            self.data['P_radiateur'] * self.data['is_switch_on'] +
-            self.data['P_ensoleillement'] * self.estimated_params[1]
+    def cost_function(self, parameters):
+        pred_df = self.predict(parameters)
+        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
+        mse = squared_errors.mean()
+        rmse = mse ** 0.5
+        return rmse
+    
+    # TODO: other cost functions that would only compute rmse for a given timeframe
+    # espacially the last 2 weeks should have more importance thant overall data
+    # would enable the data scientist to eventually exclude a useless timeframe
+    def predict(self, parameters):
+        """
+        This function builds the predicted Tint(t) for a given set of parameter
+        parameters is a list of 5 values
+        - Rth positive float
+        - C positive float
+        - alpha_rad positive float
+        - Pvoisinnage positive float
+        - time shift of switch
+        """
+        prediction_df = (
+            self.features_df.copy()
+            .assign(state=lambda df: df["state"].shift(parameters[4]))
+            .assign(
+                is_heating=lambda df: (df["state"]=="on").astype(int),
+                Tlim=lambda df: (
+                    df["temperature_ext2"] + parameters[0] * (
+                        self.P_consigne * df["is_heating"] + 
+                        parameters[2] * df["direct_radiation"] + 
+                        parameters[3]
+                    )
+                )
+            )
+            .reset_index(drop=True)
         )
-        T0 = self.data['Tint'][0]
-        return self.temperature_model(t, T0, Tlim, self.estimated_params[2], self.estimated_params[3])
+        Tint_pred = [prediction_df.temperature_int.loc[0]]
+        import streamlit as st
+        st.dataframe(prediction_df[['date', 'is_heating', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'Tlim']])
+        for idx in range(1, len(prediction_df.index)):
+            Tlim = prediction_df.Tlim.loc[idx]
+            T0 = Tint_pred[-1]
+            tau = parameters[0] * parameters[1]
+            Tint_pred += [Tlim + (T0 - Tlim) * np.exp(-300 / tau)]
+
+        prediction_df["T_int_pred"] = pd.Series(Tint_pred)
+        return prediction_df
 
     @staticmethod
     def temperature_model(t, T0, Tlim, R, C):
