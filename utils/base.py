@@ -54,7 +54,7 @@ class HomeModule():
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
         self.temperature_int_df = pd.read_csv("data/db/capteur_salon_temperature.csv", sep=",")
         self.switch_df = pd.read_csv("data/db/radiateur_bureau_switch.csv", sep=",")
-        self.weather = pd.read_csv("data/db/weather.csv", sep=",")
+        self.weather_df = pd.read_csv("data/db/weather.csv", sep=",")
         self.prepare_df()
 
     def prepare_df(self):
@@ -76,6 +76,15 @@ class HomeModule():
             .assign(
                 date=lambda df: pd.to_datetime(df['date']),
                 day=lambda df: df['date'].dt.date
+            )
+        )
+        self.weather_df = (self.weather_df
+            .rename(columns={"temperature_2m": "temperature"})
+            .assign(
+                date=lambda df: pd.to_datetime(df['date']),
+                day=lambda df: df['date'].dt.date,
+                all_day_temperature=lambda df: df.groupby('day')['temperature'].transform('mean'),
+                roll5_avg_temperature=lambda df: df['temperature'].rolling(window=5).mean()
             )
         )
 
