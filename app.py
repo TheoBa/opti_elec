@@ -3,7 +3,7 @@ import datetime as dt
 import pandas as pd
 from utils.get_data import populate_df
 from utils.display import display_time_series, display_simu_vs_truth
-from utils.forecast import get_past_weather_data2, analyze_temperature_correlations, latest_temp_forecast
+from utils.forecast import get_past_weather_data2, analyze_temperature_correlations, get_temp_day
 from utils.base import HomeModule
 from utils.scenario import SimulationHome, SCENARIOS
 
@@ -130,8 +130,8 @@ def welcome_page():
         df = get_past_weather_data2(past_days=80, forecast_days=0)
         populate_df(df, f"data/db/weather.csv")
     with st.expander(f"Weather"):
-        day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
-        temp_forecast = latest_temp_forecast(maison_caussa.weather_df, day)
+        day = (dt.datetime.now() + dt.timedelta(days=1)).date()
+        temp_forecast = get_temp_day(maison_caussa.weather_df, day)
         simu = SimulationHome()
         simu.init(
             name='predict conso',
