@@ -156,7 +156,7 @@ def create_combined_graph(data_dir: str, day_min: dt.datetime, day_max: dt.datet
     try:
         living_room_df = filter_date_range(prepare_data(f'{data_dir}/capteur_salon_temperature.csv'), day_min, day_max)
         outside_df = filter_date_range(prepare_data(f'{data_dir}/paris_17eme_arrondissement_temperature.csv'), day_min, day_max)
-        outside_df2 = filter_date_range(prepare_data(f'{data_dir}/past_weather.csv'), day_min, day_max)
+        outside_df2 = filter_date_range(prepare_data(f'{data_dir}/weather.csv'), day_min, day_max)
         heating_df = filter_date_range(prepare_data(f'{data_dir}/radiateur_bureau_switch.csv'), day_min, day_max)
         
         # Create figure with secondary y-axis
