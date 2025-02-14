@@ -4,7 +4,7 @@ import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
 from utils.get_data import get_history, build_history_df, populate_df
-from utils.forecast import _build_forecast_features, get_weather
+from utils.forecast import _build_forecast_features, get_weather, get_past_weather_data2
 from utils.thermal_modelisation import get_T_ext_w_voisin
 
 
@@ -45,12 +45,16 @@ class HomeModule():
             data = get_history(entity_id, days_delta=self.days_delta)
             df = build_history_df(data, column_names=column_names)
             populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
+        
+        # weather
+        df = get_past_weather_data2(past_days=10, forecast_days=2)
+        populate_df(df, f"data/db/weather.csv")
 
     def load_df(self):
         self.temperature_ext_df = pd.read_csv("data/db/paris_17eme_arrondissement_temperature.csv", sep=",")
         self.temperature_int_df = pd.read_csv("data/db/capteur_salon_temperature.csv", sep=",")
         self.switch_df = pd.read_csv("data/db/radiateur_bureau_switch.csv", sep=",")
-        self.weather_forecast_df = pd.read_csv("data/db/forecasted_weather.csv", sep=",")
+        self.weather = pd.read_csv("data/db/weather.csv", sep=",")
         self.prepare_df()
 
     def prepare_df(self):

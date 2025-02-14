@@ -1,8 +1,0 @@
-day,afternoon,all_day_cloud_cover_total,all_day_icon,all_day_precipitation_total,all_day_precipitation_type,all_day_temperature,all_day_temperature_max,all_day_temperature_min,all_day_weather,all_day_wind_angle,all_day_wind_dir,all_day_wind_speed,evening,icon,morning,summary,weather,date
-2025-02-05,,98,7,0.0,none,3.8,6.0,1.5,overcast,338,NNW,1.8,,7,,"Fog in the morning, cloudy later. Temperature 2/6 °C.",overcast,2025-02-05
-2025-02-06,,92,6,0.0,none,3.8,6.8,2.0,cloudy,38,NE,3.7,,6,,Cloudy. Temperature 2/7 °C.,cloudy,2025-02-05
-2025-02-07,,99,7,2.7,rain,2.8,4.5,0.8,overcast,85,E,3.8,,7,,Possible snow changing to cloudy in the afternoon. Temperature 1/5 °C.,overcast,2025-02-05
-2025-02-08,,91,6,0.0,none,3.0,4.8,1.5,cloudy,206,SSW,2.6,,6,,Cloudy. Temperature 2/5 °C.,cloudy,2025-02-05
-2025-02-09,,68,4,0.0,none,2.5,6.2,0.0,partly_sunny,208,SSW,1.4,,4,,Partly sunny changing to cloudy by evening. Temperature 0/6 °C.,partly_sunny,2025-02-05
-2025-02-10,,93,7,0.0,none,1.8,3.5,0.8,overcast,23,NNE,1.8,,7,,Cloudy. Temperature 1/4 °C.,overcast,2025-02-05
-2025-02-11,,96,7,0.5,rain,3.5,5.5,1.2,overcast,126,SE,2.1,,7,,"Cloudy in the morning and evening, possible rain in the afternoon. Temperature 1/6 °C.",overcast,2025-02-05
