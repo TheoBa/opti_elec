@@ -88,6 +88,8 @@ def populate_df(df_new: pd.DataFrame, csv_path: str):
         df_new['date'] = pd.to_datetime(df_new['date'])
         df_new = df_new[~df_new['date'].isin(df_old['date'])]
         df_combined = pd.concat([df_old, df_new], ignore_index=True)
+        for c in df_combined.columns:
+            df_combined = df_combined[~df_combined[c].isin(['unknown', 'unavailable'])]
         df_combined = df_combined.sort_values('date')
         
         df_combined.to_csv(csv_path, index=False)
