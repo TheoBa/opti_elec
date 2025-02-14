@@ -131,7 +131,7 @@ def welcome_page():
         populate_df(df, f"data/db/weather.csv")
     with st.expander(f"Weather"):
         day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
-        temp_forecast = latest_temp_forecast(maison_caussa.weather, day)
+        temp_forecast = latest_temp_forecast(maison_caussa.weather_df, day)
         simu = SimulationHome()
         simu.init(
             name='predict conso',
