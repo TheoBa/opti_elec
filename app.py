@@ -127,11 +127,11 @@ def welcome_page():
     
     button = st.button("get past weather")
     if button:
-        df = get_past_weather_data2(past_days=50, forecast_days=0)
-        populate_df(df, f"data/db/past_weather.csv")
+        df = get_past_weather_data2(past_days=80, forecast_days=0)
+        populate_df(df, f"data/db/weather.csv")
     with st.expander(f"Weather"):
         day = str((dt.datetime.now() + dt.timedelta(days=1)).date())
-        temp_forecast = latest_temp_forecast(maison_caussa.weather_forecast_df, day)
+        temp_forecast = latest_temp_forecast(maison_caussa.weather, day)
         simu = SimulationHome()
         simu.init(
             name='predict conso',
