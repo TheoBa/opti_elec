@@ -3,19 +3,10 @@ import pandas as pd
 from src.data_processing import prepare_switch_df, prepare_temperature_df, prepare_weather_df
 
 
-PATH_FILES = {
-    "temperature_ext_csv": "data/db/paris_17eme_arrondissement_temperature.csv",
-    "temperature_int_csv": "data/db/capteur_salon_temperature.csv",
-    "switch_csv": "data/db/radiateur_bureau_switch.csv",
-    "weather_csv": "data/db/weather.csv",
-}
-
-
 class TemperatureModel:
-    def __init__(self, data, initial_params):
-        self.data = data
+    def __init__(self, initial_params):
+        self.features_df = None
         self.params = initial_params
-        self.estimated_params = None
 
     def load_data(self, PATH_FILES):
         self.temperature_ext_df = pd.read_csv(PATH_FILES["temperature_ext_csv"], sep=",")
@@ -28,7 +19,16 @@ class TemperatureModel:
         self.temperature_int_df = prepare_temperature_df(self.temperature_int_df)
         self.switch_df = prepare_switch_df(self.switch_df)
         self.weather_df = prepare_weather_df(self.weather_df)
-        pass
+
+    def build_features_df(self):
+        self.features_df = (
+            self.temperature_ext_df.copy()
+            .merge(self.temperature_int_df, on='date', how='outer', suffixes=["_ext", "_int"])
+            .merge(self.switch_df, on='date', how='outer')
+            .merge(self.weather_df, on='date', how='left')
+            .loc[:, ['date', 'temperature_ext', 'temperature_ext2', 'all_day_temperature', 'roll5_avg_temperature', 'temperature_int', 'state', 'direct_radiation']]
+            .loc[lambda x: x["date"]> '2025-01-04']
+        )
 
     def estimate_parameters(self, t_data, Tint_data, Text_data, P_radiateur, is_switch_on, P_ensoleillement, alpha_initial):
 
