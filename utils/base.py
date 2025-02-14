@@ -449,11 +449,4 @@ class HomeModule():
 
     def build_forecast_features(self):
         return _build_forecast_features(self)
-    
-    def update_weather_forecast(self):
-        weather_df = get_weather()
-        weather_df = weather_df.reset_index()
-        # 'date' column corresponds to the forecast date as it is subject to change through time
-        weather_df['date'] = pd.to_datetime('today').date()
-        populate_df(weather_df, f"data/db/forecasted_weather.csv")
-        return weather_df
+
