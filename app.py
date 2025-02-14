@@ -37,6 +37,80 @@ def welcome_page():
         maison_caussa.update_db()
     maison_caussa.load_df()
 
+    with st.expander("how to choose the model's time granularity"):
+        import plotly.graph_objects as go
+        def get_time_diff(df):
+            return df.assign(
+                date=lambda df: pd.to_datetime(df['date']),
+                time_diff=lambda df: df['date'].diff()
+            )
+        
+        def plot_ts(df1, df2):
+            fig = go.Figure()
+
+            fig.add_trace(
+                go.Scatter(
+                    x=df1['date'],
+                    y=df1['temperature'],
+                    name='Init',
+                    line=dict(color='blue')
+                )
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=df2['date'],
+                    y=df2['temperature'],
+                    name='Sampled',
+                    line=dict(color='red')
+                )
+            )
+            st.plotly_chart(fig)
+        
+        tint = get_time_diff(pd.read_csv("data/db/capteur_salon_temperature.csv"))
+        st.markdown("## Interpolation sur Tint(t)")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(tint.head())
+            st.dataframe(tint.time_diff.describe())
+        with col2:
+            df = tint.set_index('date').resample('5min').mean().interpolate().reset_index(drop=False)
+            plot_ts(tint, df)
+            st.markdown(f"Data augmentation: Avant: {len(tint.index)} - Après: {len(df.index)} - Soit un x{round(len(df.index)/len(tint.index), 1)}")
+        
+        switch_df = (
+            maison_caussa.switch_df.copy()
+            .set_index('date').resample('5min').ffill().reset_index(drop=False)
+        )
+        st.markdown("## Interpolation sur les switch inputs")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(maison_caussa.switch_df.time_delta_after_switch.describe())
+        
+        def plot_switches(df1, df2):
+            fig = go.Figure()
+            fig.add_trace(
+                go.Scatter(
+                    x=df2['date'],
+                    y=df2['state'],
+                    name='Sampled',
+                    marker=dict(color='red'),
+                    mode="markers"
+                )
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=df1['date'],
+                    y=df1['state'],
+                    name='True',
+                    marker=dict(color='blue')
+                )
+            )
+            st.plotly_chart(fig)
+        with col2:
+            plot_switches(maison_caussa.switch_df, switch_df)
+        st.markdown(maison_caussa.switch_df[maison_caussa.switch_df["state"]=="on"].time_delta_after_switch.sum())
+        st.markdown(len(switch_df[switch_df.state == "on"].index)*5/60 - 72)
+
     with st.expander("Tau and C computation"):
         st.session_state['verification_mode'] = False
         # Use verified switches if available, otherwise use all switches
