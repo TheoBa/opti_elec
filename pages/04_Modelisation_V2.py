@@ -1,5 +1,6 @@
 import streamlit as st
 from src.model import TemperatureModel
+import plotly.graph_objects as go
 
 
 st.set_page_config(
@@ -41,34 +42,57 @@ def plot_temperatures(features_df):
 
 plot_temperatures(features_df=model.features_df)
 
-def plot_pred(pred_df):
-    import plotly.graph_objects as go
-    fig = go.Figure()
-    for c in ['temperature_int', 'T_int_pred']:
+def plot_pred(pred_df, parameters):
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        st.metric("R", "{:.1e}".format(parameters[0]), border=True)
+        st.metric("C", "{:.1e}".format(parameters[1]), border=True)
+        st.metric("alpha", parameters[2], border=True)
+        st.metric("Pvoisin", parameters[3], border=True)
+        st.metric("delta_t", parameters[4], border=True)
+    with col2:
+        fig = go.Figure()
+        for c in ['temperature_int', 'T_int_pred', 'direct_radiation', 'temperature_ext', 'all_day_temperature']:
+            fig.add_trace(
+                go.Scatter(
+                    x=pred_df['date'],
+                    y=pred_df[c],
+                    name=c,
+                )
+            )
+        is_heating_df = pred_df[pred_df.state=='on']
         fig.add_trace(
             go.Scatter(
-                x=pred_df['date'],
-                y=pred_df[c],
-                name=c,
+                x=is_heating_df['date'],
+                y=is_heating_df['is_heating'],
+                name="is_heating",
+                mode='markers'
             )
         )
-    st.plotly_chart(fig)
+        st.plotly_chart(fig)
+
+model.debug_pred_df=True
 
 st.markdown("### Doigt mouillé")
-prediction_df = model.predict(parameters=[.005, 5e6, 0.1, 500, 5])
-plot_pred(prediction_df)
+parameters=[8e-3, 2.5e6, 80, 100, 5]
+prediction_df = model.predict(parameters)
+plot_pred(prediction_df, parameters)
+
+st.markdown("### Powell >24th Jan 25")
+parameters=[2.02e-3, 3.72e6, 5.17e1, 4.70e2, 1.6e1]
+prediction_df = model.predict(parameters)
+plot_pred(prediction_df, parameters)
 
 st.markdown("### Powell all data")
-prediction_df = model.predict(parameters=[1.61e-02, 1.38e+07, 1.37e+02, 2.61e+02, -7.96])
-plot_pred(prediction_df)
-
-st.markdown("### Differential all data")
-prediction_df = model.predict(parameters=[2.35e-02, 9.47e+08, 1.62e+01, 7.56e+00, 7.25])
-plot_pred(prediction_df)
-
+parameters=[3.82e-3, 2.53e6, 55.6, 218, 11]
+prediction_df = model.predict(parameters)
+plot_pred(prediction_df, parameters)
 
 button = st.button("Find optimal parameters ?")
 if button:
     with st.spinner("Parameters optimisation in progress..."):
-        model.get_optimal_parameters()
+        model.debug_pred_df=False
+        model.get_optimal_parameters(
+            #opti_timeframe=['2025-01-24', '2025-02-20']
+            )
     st.success("Done!")

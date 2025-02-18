@@ -42,6 +42,16 @@ class TemperatureModel:
     # TODO: other cost functions that would only compute rmse for a given timeframe
     # espacially the last 2 weeks should have more importance thant overall data
     # would enable the data scientist to eventually exclude a useless timeframe
+    def cost_function_timeframe(self, parameters):
+            pred_df = (
+                self.predict(parameters)
+                .loc[lambda x: x["date"] > self.opti_timeframe[0]]
+                .loc[lambda x: x["date"] < self.opti_timeframe[1]]
+            )
+            squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
+            mse = squared_errors.mean()
+            rmse = mse ** 0.5
+            return rmse
 
     def predict(self, parameters):
         """
@@ -62,18 +72,18 @@ class TemperatureModel:
                     df["temperature_ext"] + parameters[0] * (
                         self.P_consigne * df["is_heating"] + 
                         parameters[2] * df["direct_radiation"] + 
-                        parameters[3]
+                        parameters[3] * (15-df["temperature_ext"])
                     )
                 )
             )
             .reset_index(drop=True)
         )
         Tint_pred = [prediction_df.temperature_int.loc[0]]
-        # st.dataframe(prediction_df[['date', 'is_heating', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'Tlim']])
+        if self.debug_pred_df:
+            st.dataframe(prediction_df[['date', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'direct_radiation', 'is_heating', 'Tlim']])
         for idx in range(1, len(prediction_df.index)):
             Tlim = prediction_df.Tlim.loc[idx]
             T0 = Tint_pred[-1]
-            tau = parameters[0] * parameters[1]
             Tint_pred += [self.temperature_model(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
 
         prediction_df["T_int_pred"] = pd.Series(Tint_pred)
@@ -83,21 +93,25 @@ class TemperatureModel:
     def temperature_model(t, T0, Tlim, R, C):
         return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
 
-    def get_optimal_parameters(self):
+    def get_optimal_parameters(self, opti_timeframe=None):
         from src.optimizer import optimize_parameters
 
         initial_guess = [.005, 5e6, 0.1, 500, 5] # R, C, alpha, Pvoisin, time_shift switch / T
-        bounds = [(1e-9, 1e2), (1, 1e9), (0, 1e3), (0, 5000), (0, 20)]
+
+        if opti_timeframe:
+            self.opti_timeframe = opti_timeframe
+            opti_func = self.cost_function_timeframe
+        else:
+            opti_func = self.cost_function
 
         results = optimize_parameters(
-            loss_function=self.cost_function,
+            loss_function=opti_func,
             initial_guess=initial_guess,
-            bounds=bounds
         )
         # Display results
         st.header('Optimization Results')
         for method, result in results.items():
             if isinstance(result, dict) and result['success']:
                 st.subheader(method)
-                st.write(f"Parameters: {result['parameters']}")
-                st.write(f"RMSE: {result['rmse']:.6f}")
+                st.markdown(f"Parameters: {result['parameters']}")
+                st.markdown(f"RMSE: {result['rmse']:.6f}")
