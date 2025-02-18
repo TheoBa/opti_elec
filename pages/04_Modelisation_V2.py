@@ -41,8 +41,6 @@ def plot_temperatures(features_df):
 
 plot_temperatures(features_df=model.features_df)
 
-prediction_df = model.predict(parameters=[.005, 5e6, 0.1, 500, 5])
-
 def plot_pred(pred_df):
     import plotly.graph_objects as go
     fig = go.Figure()
@@ -56,4 +54,21 @@ def plot_pred(pred_df):
         )
     st.plotly_chart(fig)
 
+st.markdown("### Doigt mouillé")
+prediction_df = model.predict(parameters=[.005, 5e6, 0.1, 500, 5])
 plot_pred(prediction_df)
+
+st.markdown("### Powell all data")
+prediction_df = model.predict(parameters=[1.61e-02, 1.38e+07, 1.37e+02, 2.61e+02, -7.96])
+plot_pred(prediction_df)
+
+st.markdown("### Differential all data")
+prediction_df = model.predict(parameters=[2.35e-02, 9.47e+08, 1.62e+01, 7.56e+00, 7.25])
+plot_pred(prediction_df)
+
+
+button = st.button("Find optimal parameters ?")
+if button:
+    with st.spinner("Parameters optimisation in progress..."):
+        model.get_optimal_parameters()
+    st.success("Done!")

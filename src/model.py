@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import streamlit as st
 from src.data_processing import prepare_switch_df, prepare_temperature_df, prepare_weather_df
 
 
@@ -54,7 +55,7 @@ class TemperatureModel:
         """
         prediction_df = (
             self.features_df.copy()
-            .assign(state=lambda df: df["state"].shift(parameters[4]))
+            .assign(state=lambda df: df["state"].shift(int(parameters[4])))
             .assign(
                 is_heating=lambda df: (df["state"]=="on").astype(int),
                 Tlim=lambda df: (
@@ -68,8 +69,7 @@ class TemperatureModel:
             .reset_index(drop=True)
         )
         Tint_pred = [prediction_df.temperature_int.loc[0]]
-        import streamlit as st
-        st.dataframe(prediction_df[['date', 'is_heating', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'Tlim']])
+        # st.dataframe(prediction_df[['date', 'is_heating', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'Tlim']])
         for idx in range(1, len(prediction_df.index)):
             Tlim = prediction_df.Tlim.loc[idx]
             T0 = Tint_pred[-1]
@@ -83,3 +83,21 @@ class TemperatureModel:
     def temperature_model(t, T0, Tlim, R, C):
         return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
 
+    def get_optimal_parameters(self):
+        from src.optimizer import optimize_parameters
+
+        initial_guess = [.005, 5e6, 0.1, 500, 5] # R, C, alpha, Pvoisin, time_shift switch / T
+        bounds = [(1e-9, 1e2), (1, 1e9), (0, 1e3), (0, 5000), (0, 20)]
+
+        results = optimize_parameters(
+            loss_function=self.cost_function,
+            initial_guess=initial_guess,
+            bounds=bounds
+        )
+        # Display results
+        st.header('Optimization Results')
+        for method, result in results.items():
+            if isinstance(result, dict) and result['success']:
+                st.subheader(method)
+                st.write(f"Parameters: {result['parameters']}")
+                st.write(f"RMSE: {result['rmse']:.6f}")
