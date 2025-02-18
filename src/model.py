@@ -65,28 +65,35 @@ class TemperatureModel:
         """
         prediction_df = (
             self.features_df.copy()
-            .assign(state=lambda df: df["state"].shift(int(parameters[4])))
             .assign(
+                state=lambda df: df["state"].shift(int(parameters[4])),
+                day=lambda df: df['date'].dt.date,
+                shape_t_ext=lambda df: 15-df["temperature_ext"],
                 is_heating=lambda df: (df["state"]=="on").astype(int),
                 Tlim=lambda df: (
                     df["temperature_ext"] + parameters[0] * (
                         self.P_consigne * df["is_heating"] + 
                         parameters[2] * df["direct_radiation"] + 
-                        parameters[3] * (15-df["temperature_ext"])
+                        parameters[3] * df["shape_t_ext"]
                     )
                 )
             )
             .reset_index(drop=True)
         )
-        Tint_pred = [prediction_df.temperature_int.loc[0]]
         if self.debug_pred_df:
-            st.dataframe(prediction_df[['date', 'temperature_ext', 'temperature_ext2', 'temperature_int', 'direct_radiation', 'is_heating', 'Tlim']])
-        for idx in range(1, len(prediction_df.index)):
-            Tlim = prediction_df.Tlim.loc[idx]
-            T0 = Tint_pred[-1]
-            Tint_pred += [self.temperature_model(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
+            st.dataframe(prediction_df)
+        TINT_PRED = []
+        for d in prediction_df.day.unique():
+            pred_df = prediction_df[prediction_df.day==d].reset_index(drop=True)
+            Tint_pred = [pred_df.temperature_int.loc[0]]
+            for idx in range(1, len(pred_df.index)):
+                Tlim = pred_df.Tlim.loc[idx]
+                T0 = Tint_pred[-1]
+                
+                Tint_pred += [self.temperature_model(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
+            TINT_PRED += Tint_pred
 
-        prediction_df["T_int_pred"] = pd.Series(Tint_pred)
+        prediction_df["T_int_pred"] = pd.Series(TINT_PRED)
         return prediction_df
 
     @staticmethod
