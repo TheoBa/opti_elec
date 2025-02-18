@@ -42,6 +42,12 @@ def plot_temperatures(features_df):
 
 plot_temperatures(features_df=model.features_df)
 
+def get_rmse(pred_df):
+        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
+        mse = squared_errors.mean()
+        rmse = mse ** 0.5
+        return rmse
+
 def plot_pred(pred_df, parameters):
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -69,9 +75,10 @@ def plot_pred(pred_df, parameters):
                 mode='markers'
             )
         )
+        st.metric("RMSE", round(get_rmse(pred_df), 2), border=True)
         st.plotly_chart(fig)
 
-model.debug_pred_df=True
+model.debug_pred_df=False
 
 st.markdown("### Doigt mouillé")
 parameters=[8e-3, 2.5e6, 80, 100, 5]
@@ -79,12 +86,12 @@ prediction_df = model.predict(parameters)
 plot_pred(prediction_df, parameters)
 
 st.markdown("### Powell >24th Jan 25")
-parameters=[2.02e-3, 3.72e6, 5.17e1, 4.70e2, 1.6e1]
+parameters=[7.37e-3, 4e6, 71.8, 104, 4]
 prediction_df = model.predict(parameters)
 plot_pred(prediction_df, parameters)
 
 st.markdown("### Powell all data")
-parameters=[3.82e-3, 2.53e6, 55.6, 218, 11]
+parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
 prediction_df = model.predict(parameters)
 plot_pred(prediction_df, parameters)
 
@@ -93,6 +100,6 @@ if button:
     with st.spinner("Parameters optimisation in progress..."):
         model.debug_pred_df=False
         model.get_optimal_parameters(
-            #opti_timeframe=['2025-01-24', '2025-02-20']
+            # opti_timeframe=['2025-01-24', '2025-02-20']
             )
     st.success("Done!")
