@@ -21,7 +21,7 @@ def create_optimization_function(loss_function, fixed_params):
         return loss_function(opt_params, **fixed_params)
     return wrapped_loss
 
-def optimize_parameters(loss_function, initial_guess, bounds):
+def optimize_parameters(loss_function, initial_guess):
     """
     Optimize parameters using multiple methods.
     
