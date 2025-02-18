@@ -41,6 +41,7 @@ class TemperatureModel:
     # TODO: other cost functions that would only compute rmse for a given timeframe
     # espacially the last 2 weeks should have more importance thant overall data
     # would enable the data scientist to eventually exclude a useless timeframe
+
     def predict(self, parameters):
         """
         This function builds the predicted Tint(t) for a given set of parameter
@@ -57,7 +58,7 @@ class TemperatureModel:
             .assign(
                 is_heating=lambda df: (df["state"]=="on").astype(int),
                 Tlim=lambda df: (
-                    df["temperature_ext2"] + parameters[0] * (
+                    df["temperature_ext"] + parameters[0] * (
                         self.P_consigne * df["is_heating"] + 
                         parameters[2] * df["direct_radiation"] + 
                         parameters[3]
@@ -73,7 +74,7 @@ class TemperatureModel:
             Tlim = prediction_df.Tlim.loc[idx]
             T0 = Tint_pred[-1]
             tau = parameters[0] * parameters[1]
-            Tint_pred += [Tlim + (T0 - Tlim) * np.exp(-300 / tau)]
+            Tint_pred += [self.temperature_model(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
 
         prediction_df["T_int_pred"] = pd.Series(Tint_pred)
         return prediction_df
