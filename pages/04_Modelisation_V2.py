@@ -102,3 +102,12 @@ if button:
             # opti_timeframe=['2025-01-24', '2025-02-20']
             )
     st.success("Done!")
+
+validation_button = st.button("Validate model")
+if validation_button:
+    with st.spinner("Model validation in progress..."):
+        from src.validation import validate_model
+        test_timeframe = ['2025-01-24', '2025-02-10']
+        prediction_df, rmse = validate_model(test_timeframe)
+        st.success(f"Validation complete. RMSE: {rmse}")
+        st.dataframe(prediction_df)
