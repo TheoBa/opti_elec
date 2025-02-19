@@ -5,9 +5,8 @@ from src.data_processing import prepare_switch_df, prepare_temperature_df, prepa
 
 
 class TemperatureModel:
-    def __init__(self, initial_params, P_consigne):
+    def __init__(self, P_consigne):
         self.features_df = None
-        self.params = initial_params # Rth, C, alpha, Pvoisinnage
         self.P_consigne = P_consigne
 
     def load_data(self, PATH_FILES):
