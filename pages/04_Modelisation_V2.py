@@ -18,7 +18,6 @@ PATH_FILES = {
 }
 
 model = TemperatureModel(
-    initial_params=[0.01, 1000, 1, 100], 
     P_consigne=2500
 )
 model.load_data(PATH_FILES)
