@@ -79,7 +79,7 @@ class TemperatureModel:
             )
             .reset_index(drop=True)
         )
-        if self.debug_pred_df:
+        if getattr(self, "debug_pred_df", False):
             st.dataframe(prediction_df)
         TINT_PRED = []
         for d in prediction_df.day.unique():
@@ -114,6 +114,8 @@ class TemperatureModel:
             loss_function=opti_func,
             initial_guess=initial_guess,
         )
+        # Store the optimal parameters
+        self.optimal_parameters = None
         # Display results
         st.header('Optimization Results')
         for method, result in results.items():
@@ -121,3 +123,4 @@ class TemperatureModel:
                 st.subheader(method)
                 st.markdown(f"Parameters: {result['parameters']}")
                 st.markdown(f"RMSE: {result['rmse']:.6f}")
+                self.optimal_parameters = result['parameters']
