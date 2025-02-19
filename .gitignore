@@ -1,2 +1,4 @@
 .streamlit
 utils/__pycache__/
+.cache.sqlite
+src/__pycache__
