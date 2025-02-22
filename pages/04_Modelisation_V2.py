@@ -99,7 +99,7 @@ if button:
     with st.spinner("Parameters optimisation in progress..."):
         model.debug_pred_df=False
         model.get_optimal_parameters(
-            # opti_timeframe=['2025-01-24', '2025-02-20']
+            # train_timeframe=['2025-01-24', '2025-02-20']
             )
     st.success("Done!")
 
@@ -107,7 +107,10 @@ validation_button = st.button("Validate model")
 if validation_button:
     with st.spinner("Model validation in progress..."):
         from src.validation import validate_model
-        test_timeframe = ['2025-01-24', '2025-02-10']
-        prediction_df, rmse = validate_model(test_timeframe)
+        train_timeframe = ['2025-01-24', '2025-02-10']
+        test_timeframe=['2025-02-11', '2025-02-11']
+        prediction_df, rmse = validate_model(
+            train_timeframe=train_timeframe, 
+            test_timeframe=test_timeframe)
         st.success(f"Validation complete. RMSE: {rmse}")
         st.dataframe(prediction_df)

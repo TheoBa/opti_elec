@@ -31,26 +31,12 @@ class TemperatureModel:
             .loc[lambda x: x["date"]> '2025-01-04']
         )
 
-    def cost_function(self, parameters):
+    def cost_function_wrapped(self, parameters):
         pred_df = self.predict(parameters)
         squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
         mse = squared_errors.mean()
         rmse = mse ** 0.5
         return rmse
-    
-    # TODO: other cost functions that would only compute rmse for a given timeframe
-    # espacially the last 2 weeks should have more importance thant overall data
-    # would enable the data scientist to eventually exclude a useless timeframe
-    def cost_function_timeframe(self, parameters):
-            pred_df = (
-                self.predict(parameters)
-                .loc[lambda x: x["date"] > self.opti_timeframe[0]]
-                .loc[lambda x: x["date"] < self.opti_timeframe[1]]
-            )
-            squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
-            mse = squared_errors.mean()
-            rmse = mse ** 0.5
-            return rmse
 
     def predict(self, parameters):
         """
@@ -62,8 +48,9 @@ class TemperatureModel:
         - Pvoisinnage positive float
         - time shift of switch
         """
+        pred_df = getattr(self, "pred_df", self.features_df.copy())
         prediction_df = (
-            self.features_df.copy()
+            pred_df
             .assign(
                 state=lambda df: df["state"].shift(int(parameters[4])),
                 day=lambda df: df['date'].dt.date,
@@ -99,16 +86,24 @@ class TemperatureModel:
     def temperature_model(t, T0, Tlim, R, C):
         return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
 
-    def get_optimal_parameters(self, opti_timeframe=None):
+    @staticmethod
+    def select_timeframe(df, predict_timeframe):
+        return (
+            df.copy()
+            .loc[lambda x: x["date"] > predict_timeframe[0]]
+            .loc[lambda x: x["date"] < predict_timeframe[1]]
+        )
+    
+    def get_optimal_parameters(self, train_timeframe=None):
         from src.optimizer import optimize_parameters
 
-        initial_guess = [.005, 5e6, 0.1, 500, 5] # R, C, alpha, Pvoisin, time_shift switch / T
+        initial_guess = [1e-2, 4.3e6, 87, 65.5, 2] # R, C, alpha, Pvoisin, time_shift switch / T
 
-        if opti_timeframe:
-            self.opti_timeframe = opti_timeframe
-            opti_func = self.cost_function_timeframe
+        if train_timeframe:
+            self.pred_df = self.select_timeframe(self.features_df, train_timeframe)
         else:
-            opti_func = self.cost_function
+            self.pred_df = self.features_df
+        opti_func = self.cost_function_wrapped
 
         results = optimize_parameters(
             loss_function=opti_func,
@@ -124,3 +119,23 @@ class TemperatureModel:
                 st.markdown(f"Parameters: {result['parameters']}")
                 st.markdown(f"RMSE: {result['rmse']:.6f}")
                 self.optimal_parameters = result['parameters']
+
+    def test_model(self, test_timeframe=None, test_parameters=None, use_optimal_parameters=False):
+        """"
+        Test the model on a given timeframe with the given parameters.
+        if test_parameters is "optimal", use the optimal parameters found by the optimizer.
+        if test_parameters is None, return an error.
+        if test_timeframe is None, return an error.
+        """
+        if test_timeframe is None:
+            st.error('Please select a test timeframe.')
+            return
+        if test_parameters is None:
+            st.error('Please select test parameters.')
+            return
+        if use_optimal_parameters:
+            test_parameters = self.optimal_parameters
+        self.pred_df = self.select_timeframe(self.features_df,test_timeframe)
+        test_df = self.predict(test_parameters)
+        rmse = self.cost_function_wrapped(test_parameters)
+        return test_df, rmse
