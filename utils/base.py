@@ -47,7 +47,7 @@ class HomeModule():
             populate_df(df, f"data/db/{entity_id.split('.')[1]}.csv")
         
         # weather
-        df = get_past_weather_data2(past_days=10, forecast_days=2)
+        df = get_past_weather_data2(past_days=10, forecast_days=3)
         populate_df(df, f"data/db/weather.csv")
 
     def load_df(self):
