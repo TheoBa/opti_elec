@@ -4,12 +4,29 @@ This repo host a PoC for building KPI in a home assistant app
 
 # Modelisation thermique
 
-## **Différents transferts thermiques**
-<img src="readme/tt_home.png" alt="Differents transferts thermiques" width="400"/>
+## Historique du projet
+
+L'ambition du projet a toujours été de modéliser la consommation électrique d'un logement en fonction de la température extérieure et de la température intérieure de la manière la plus simple possible.
+
+La première itération naïve consistait à modéliser à 100% la consommation électrique. Nous supposions plusieurs hypothèses simplificatrices de manière à se placer dans le cadre théorique d'un transfert thermique conductif entre extérieur et intérieur avec un apport d'énergie constant, celui du système de chauffage.
+
+Les premiers résultats obtenus étaient satisfaisant pour la preuve de concept mais manquaient de fiabilité pour une utilisation en production.
+
+Finalement, alors qu'une approche 100% IA nous semblait inenvisageable en raison de la complexité du problème par rapport à la quantité et la qualité des données disponibles, nous avons opté pour une approche hybride.
+
+Une modélisation thermique avec des hypothèses thermiques moins contraignantes - augmentant le nombre de degré de liberté du problème - augmentée par une démarche "type IA" avec l'introduction de variables optimisée lors d'une phase d'apprentissage.
+
+Cette approche nous a non seulemement permis d'obtenir des résultats plus fiables mais surtout de mieux appréhender les différents phénomènes thermiques en jeu et d'éventuellement les ajouter dans la modélisation.
+
+Quelques jours / semaines plus tard Adrien Caussanel m'a fait découvrir le site [reimagine-energy.ai](https://www.reimagine-energy.ai/p/data-driven-efficiency-predicting) qui théorise précisément l'approche hybride que j'avais retenue sans le savoir!
+<img src="readme/graybox model.png" alt="Interest of grey-box model for thermal modeling" width="400"/>
+
+
+## Les Différents transferts thermiques
 
 - La **conduction** ou **diffusion** : Le transfert d'énergie entre objets en contact physique.
 - La **convection** : le transfert d'énergie entre un objet et son environnement, dû à un mouvement fluide 
-- Le **rayonnement** : le transfert d'énergie par l'émission de rayonnement électromagnétique.
+- Le **rayonnement** : le transfert d'énergie par l'émission de rayonnement électromagnétique. Dans notre modélisation, le seul phénomène radiatif pris en compte est le rayonnement perçu par le soleil.
 
 ## Flux thermiques associés
 `Conduction:`
@@ -23,7 +40,9 @@ This repo host a PoC for building KPI in a home assistant app
 
 `Rayonnement:`
 
-${\displaystyle \Phi^{\mathrm {ray}} =S\,\varepsilon \,\sigma \,T^{4}}$
+${\displaystyle \Phi^{\mathrm {ray}} =S\,\varepsilon \,\sigma \,T^{4}}$ 
+
+## **Les Différents transferts thermiques**
 
 ## Expression générale du flux thermique
 Par construction on peut relier le flux thermique à une quantité de chaleur échangée par unité de temps selon:
