@@ -2,6 +2,7 @@ import streamlit as st
 from src.model import TemperatureModel
 import plotly.graph_objects as go
 from src.sandbox import Simulation
+from src.data_loader import update_db, ENTITY_IDS_CAUSSA, ENTITY_IDS_NABU
 
 st.set_page_config(
     page_title='Modelisation V2', 
@@ -9,6 +10,15 @@ st.set_page_config(
     layout="wide", 
     initial_sidebar_state="collapsed"
 )
+
+if st.button("update databases"):
+    # Update Caussa's place
+    update_db(
+        HA_domain_name="https://17blacroix.duckdns.org:8123", 
+        ENTITY_IDS=ENTITY_IDS_CAUSSA, 
+        db_name="db"
+    )
+    st.success("Databases updated")
 
 PATH_FILES = {
     "temperature_ext_csv": "data/db/paris_17eme_arrondissement_temperature.csv",
