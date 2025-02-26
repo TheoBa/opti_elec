@@ -1,7 +1,7 @@
 import streamlit as st
 from src.model import TemperatureModel
 import plotly.graph_objects as go
-
+from src.sandbox import Simulation
 
 st.set_page_config(
     page_title='Modelisation V2', 
@@ -24,22 +24,23 @@ model.load_data(PATH_FILES)
 model.preprocess_data()
 model.build_features_df()
 
-st.dataframe(model.features_df.head())
-
 def plot_temperatures(features_df):
-    import plotly.graph_objects as go
-    fig = go.Figure()
-    for c in ['temperature_ext', 'temperature_ext2', 'all_day_temperature', 'roll5_avg_temperature']:
-        fig.add_trace(
-            go.Scatter(
-                x=features_df['date'],
-                y=features_df[c],
-                name=c,
+        import plotly.graph_objects as go
+        fig = go.Figure()
+        for c in ['temperature_ext', 'temperature_ext2', 'all_day_temperature', 'roll5_avg_temperature']:
+            fig.add_trace(
+                go.Scatter(
+                    x=features_df['date'],
+                    y=features_df[c],
+                    name=c,
+                )
             )
-        )
-    st.plotly_chart(fig)
+        st.plotly_chart(fig)
 
-plot_temperatures(features_df=model.features_df)
+with st.expander("See input features_df & temperatures"):
+    st.dataframe(model.features_df.head())
+
+    plot_temperatures(features_df=model.features_df)
 
 def get_rmse(pred_df):
         squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
@@ -79,20 +80,21 @@ def plot_pred(pred_df, parameters):
 
 model.debug_pred_df=False
 
-st.markdown("### Doigt mouillé")
-parameters=[8e-3, 2.5e6, 80, 100, 5]
-prediction_df = model.predict(parameters)
-plot_pred(prediction_df, parameters)
+with st.expander("See models performance"):
+    st.markdown("### Doigt mouillé")
+    parameters=[8e-3, 2.5e6, 80, 100, 5]
+    prediction_df = model.predict(parameters)
+    plot_pred(prediction_df, parameters)
 
-st.markdown("### Powell >24th Jan 25")
-parameters=[7.37e-3, 4e6, 71.8, 104, 4]
-prediction_df = model.predict(parameters)
-plot_pred(prediction_df, parameters)
+    st.markdown("### Powell >24th Jan 25")
+    parameters=[7.37e-3, 4e6, 71.8, 104, 4]
+    prediction_df = model.predict(parameters)
+    plot_pred(prediction_df, parameters)
 
-st.markdown("### Powell all data")
-parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
-prediction_df = model.predict(parameters)
-plot_pred(prediction_df, parameters)
+    st.markdown("### Powell all data")
+    parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
+    prediction_df = model.predict(parameters)
+    plot_pred(prediction_df, parameters)
 
 button = st.button("Find optimal parameters ?")
 if button:
@@ -114,3 +116,13 @@ if validation_button:
             test_timeframe=test_timeframe)
         st.success(f"Validation complete. RMSE: {rmse}")
         st.dataframe(prediction_df)
+
+with st.expander("See scenario output"):
+    simu = Simulation()
+    simu.load_forecasted_data()
+    with st.form("Scenario input"):
+        scenario = st.selectbox("Scenario", ["teletravail", "normal"])
+        btn = st.form_submit_button("Submit")
+    if btn:
+        simu.create_simulation_features(heating_scenario=scenario)
+        simu.compute_temperature_int()
