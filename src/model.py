@@ -76,15 +76,11 @@ class TemperatureModel:
                 Tlim = pred_df.Tlim.loc[idx]
                 T0 = Tint_pred[-1]
                 
-                Tint_pred += [self.temperature_model(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
+                Tint_pred += [compute_temperature_int(t=300, T0=T0, Tlim=Tlim, R=parameters[0], C=parameters[1])]
             TINT_PRED += Tint_pred
 
         prediction_df["T_int_pred"] = pd.Series(TINT_PRED)
         return prediction_df
-
-    @staticmethod
-    def temperature_model(t, T0, Tlim, R, C):
-        return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
 
     @staticmethod
     def select_timeframe(df, predict_timeframe):
@@ -139,3 +135,7 @@ class TemperatureModel:
         test_df = self.predict(test_parameters)
         rmse = self.cost_function_wrapped(test_parameters)
         return test_df, rmse
+
+
+def compute_temperature_int(t, T0, Tlim, R, C):
+    return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
