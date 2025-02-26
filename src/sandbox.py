@@ -16,6 +16,7 @@ class Simulation:
         self.temperature_int_0 = 15
         self.target_temperature = 19
         self.hysteresis = 0.5
+        self.simulation_df = None
 
     def load_forecasted_data(self):
         self.forecasted_data_df = (
@@ -127,10 +128,10 @@ class Simulation:
             Tlim += [self.compute_Tlim(self.features_df.iloc[i], parameters, is_heating[-1])]
             T_int_pred.append(compute_temperature_int(t=300, T0=T_int_pred[-1], Tlim=Tlim[-1], R=parameters[0], C=parameters[1]))
         
-        self.features_df["is_heating"] = pd.Series(is_heating)
-        self.features_df["Tlim"] = pd.Series(Tlim)
-        self.features_df["T_int_pred"] = pd.Series(T_int_pred)
-        st.dataframe(self.features_df)
+        self.simulation_df = self.features_df.copy()
+        self.simulation_df["is_heating"] = pd.Series(is_heating)
+        self.simulation_df["Tlim"] = pd.Series(Tlim)
+        self.simulation_df["T_int_pred"] = pd.Series(T_int_pred)
 
     def build_scenario(self, heating_scenario: str):
         if heating_scenario == "teletravail":
@@ -149,5 +150,14 @@ class Simulation:
                 ],
                 columns=['hour', 'minute', 'thermostat_state']
             )
-        st.dataframe(scenario_df)
         return scenario_df
+    
+    def compute_scenarios_consumption(self):
+        """
+        Calculate consumption associated to studied scenario.
+        Compute uptime: total time heaters were on (in hours)
+        Returns conso (in kWh): consumption in kWh (uptime * P_consigne / 1000)
+        """
+        uptime = self.simulation_df.is_heating.sum() * 300 / 3600 # Convert to hours
+        conso = uptime * self.P_consigne / 1000 # Convert to kWh
+        return round(conso, 2)

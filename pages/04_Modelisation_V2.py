@@ -117,12 +117,48 @@ if validation_button:
         st.success(f"Validation complete. RMSE: {rmse}")
         st.dataframe(prediction_df)
 
+
+def plot_simu(simu):
+    pred_df = simu.simulation_df
+    parameters = simu.parameters
+    
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        st.metric("R", "{:.1e}".format(parameters[0]), border=True)
+        st.metric("C", "{:.1e}".format(parameters[1]), border=True)
+        st.metric("alpha", parameters[2], border=True)
+        st.metric("Pvoisin", parameters[3], border=True)
+        st.metric("delta_t", parameters[4], border=True)
+    with col2:
+        fig = go.Figure()
+        for c in ['T_int_pred', 'direct_radiation', 'temperature_ext2']:
+            fig.add_trace(
+                go.Scatter(
+                    x=pred_df['date'],
+                    y=pred_df[c],
+                    name=c,
+                )
+            )
+        for c in ["thermostat_state", "is_heating"]:
+            fig.add_trace(
+                go.Scatter(
+                    x=pred_df['date'],
+                    y=pred_df[c],
+                    name=c,
+                    mode='markers'
+                )
+            )
+        st.metric("Conso (in kWh)", value=simu.compute_scenarios_consumption(), border=True)
+        st.plotly_chart(fig)
+
+
 with st.expander("See scenario output"):
-    simu = Simulation()
-    simu.load_forecasted_data()
     with st.form("Scenario input"):
         scenario = st.selectbox("Scenario", ["teletravail", "normal"])
         btn = st.form_submit_button("Submit")
     if btn:
+        simu = Simulation()
+        simu.load_forecasted_data()
         simu.create_simulation_features(heating_scenario=scenario)
         simu.compute_temperature_int()
+        plot_simu(simu)
