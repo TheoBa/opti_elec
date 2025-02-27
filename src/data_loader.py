@@ -36,7 +36,7 @@ def parse_data_string(data_string: str) -> dict:
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string: {e}")
 
-def get_json_data(HA_domain_name="https://17blacroix.duckdns.org:8123", entity_id="", historic_length=10):
+def get_json_data(module_config, entity_id="", historic_length=10):
     """
     Get data from the Home Assistant API through GET REQUEST
     """
@@ -46,9 +46,9 @@ def get_json_data(HA_domain_name="https://17blacroix.duckdns.org:8123", entity_i
     end_date = "?end_time=" + end_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     entity_id_query = "&filter_entity_id=" + entity_id + "&minimal_response"
 
-    url = f"{HA_domain_name}/api/history/period/{start_date}{end_date}{entity_id_query}"
+    url = f"{module_config["HA_domain_name"]}/api/history/period/{start_date}{end_date}{entity_id_query}"
 
-    TOKEN = st.secrets["API_TOKEN"]
+    TOKEN = st.secrets[module_config["API_TOKEN"]]
     headers = {
         "Authorization": f"Bearer " + TOKEN
     }
@@ -133,7 +133,7 @@ def update_db(module_config):
             column_names={"state": "temperature", "last_changed": "date"}
         else:
             column_names={"last_changed": "date"}
-        json_data = get_json_data(module_config["HA_domain_name"], entity_id, historic_length=10)
+        json_data = get_json_data(module_config, entity_id, historic_length=10)
         df = json_to_df(json_data, column_names=column_names)
         populate_database(df, f"data/{module_config["db_name"]}/{entity}.csv")
     

@@ -17,13 +17,9 @@ if st.button("update databases"):
     # Update Caussa's place
     update_db(config["caussa"])
     st.success("Databases updated")
-
-PATH_FILES = {
-    "temperature_ext_csv": "data/db/paris_17eme_arrondissement_temperature.csv",
-    "temperature_int_csv": "data/db/capteur_salon_temperature.csv",
-    "switch_csv": "data/db/radiateur_bureau_switch.csv",
-    "weather_csv": "data/db/weather.csv",
-}
+    # Update Nabu's place
+    update_db(config["nabu"])
+    st.success("Databases updated")
 
 model = TemperatureModel(
     P_consigne=2500
