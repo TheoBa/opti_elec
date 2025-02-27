@@ -3,6 +3,7 @@ from src.model import TemperatureModel
 import plotly.graph_objects as go
 from src.sandbox import Simulation
 from src.data_loader import update_db, ENTITY_IDS_CAUSSA, ENTITY_IDS_NABU
+import json
 
 st.set_page_config(
     page_title='Modelisation V2', 
@@ -11,13 +12,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+config = json.load(open("config.json", "r"))
 if st.button("update databases"):
     # Update Caussa's place
-    update_db(
-        HA_domain_name="https://17blacroix.duckdns.org:8123", 
-        ENTITY_IDS=ENTITY_IDS_CAUSSA, 
-        db_name="db"
-    )
+    update_db(config["caussa"])
     st.success("Databases updated")
 
 PATH_FILES = {
@@ -30,7 +28,7 @@ PATH_FILES = {
 model = TemperatureModel(
     P_consigne=2500
 )
-model.load_data(PATH_FILES)
+model.load_data(config["caussa"])
 model.preprocess_data()
 model.build_features_df()
 

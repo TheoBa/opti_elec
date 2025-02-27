@@ -1,18 +1,11 @@
-import pandas as pd
 from src.model import TemperatureModel
-import streamlit as st
-import datetime as dt
+import json
 
 def validate_model(train_timeframe, test_timeframe):
     # Initialize the model
-    PATH_FILES = {
-        "temperature_ext_csv": "data/db/paris_17eme_arrondissement_temperature.csv",
-        "temperature_int_csv": "data/db/capteur_salon_temperature.csv",
-        "switch_csv": "data/db/radiateur_bureau_switch.csv",
-        "weather_csv": "data/db/weather.csv",
-    }
+    config = json.load(open("config.json", "r"))
     model = TemperatureModel(P_consigne=2500)
-    model.load_data(PATH_FILES)
+    model.load_data(config["caussa"])
     model.preprocess_data() 
     model.build_features_df()
 

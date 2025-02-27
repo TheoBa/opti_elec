@@ -87,7 +87,7 @@ def populate_database(df_new: pd.DataFrame, csv_path: str):
         # If file doesn't exist, save the new DataFrame
         df_new.to_csv(csv_path, index=False)
 
-def get_past_weather_data2(past_days=5, forecast_days=3):
+def get_past_weather_data2(module_config, past_days=5, forecast_days=3):
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -97,8 +97,8 @@ def get_past_weather_data2(past_days=5, forecast_days=3):
     # The order of variables in hourly or daily is important to assign them correctly below
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": 48.864716,
-        "longitude": 2.349014,
+        "latitude": module_config["latitude"],
+        "longitude": module_config["longitude"],
         "hourly": ["temperature_2m", "cloud_cover", "is_day", "direct_radiation"],
 	    "timezone": "auto",
         "past_days": past_days,
@@ -124,19 +124,19 @@ def get_past_weather_data2(past_days=5, forecast_days=3):
     hourly_dataframe = pd.DataFrame(data = hourly_data)
     return hourly_dataframe
 
-def update_db(HA_domain_name, ENTITY_IDS, db_name="db"):
+def update_db(module_config):
     """
     Request data from Home Assistant and update the database
     """
-    for entity_id in ENTITY_IDS:
-        if entity_id.split(".")[0]=="sensor":
+    for entity, entity_id in module_config["entities"].items():
+        if "temperature" in entity:
             column_names={"state": "temperature", "last_changed": "date"}
         else:
             column_names={"last_changed": "date"}
-        json_data = get_json_data(HA_domain_name, entity_id, historic_length=10)
+        json_data = get_json_data(module_config["HA_domain_name"], entity_id, historic_length=10)
         df = json_to_df(json_data, column_names=column_names)
-        populate_database(df, f"data/{db_name}/{entity_id.split('.')[1]}.csv")
+        populate_database(df, f"data/{module_config["db_name"]}/{entity}.csv")
     
     # weather
-    df = get_past_weather_data2(past_days=10, forecast_days=3)
-    populate_database(df, f"data/{db_name}/weather.csv")
+    df = get_past_weather_data2(module_config,past_days=10, forecast_days=3)
+    populate_database(df, f"data/{module_config["db_name"]}/weather.csv")
