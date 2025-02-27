@@ -27,7 +27,7 @@ class TemperatureModel:
             .merge(self.temperature_int_df, on='date', how='outer', suffixes=["_ext", "_int"])
             .merge(self.switch_df, on='date', how='outer')
             .merge(self.weather_df, on='date', how='left')
-            .loc[:, ['date', 'temperature_ext', 'temperature_ext2', 'all_day_temperature', 'roll5_avg_temperature', 'temperature_int', 'state', 'direct_radiation']]
+            .loc[:, ['date', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature', 'temperature_int', 'state', 'direct_radiation']]
             .loc[lambda x: x["date"]> '2025-01-04']
         )
 

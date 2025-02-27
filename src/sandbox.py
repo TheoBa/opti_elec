@@ -27,7 +27,7 @@ class Simulation:
                 hour=lambda df: df['date'].dt.hour,
                 minute=lambda df: df['date'].dt.minute
             )
-            .loc[:,["date", "hour", "minute", "temperature_ext2", "direct_radiation"]]
+            .loc[:,["date", "hour", "minute", "temperature_ext", "direct_radiation"]]
             )
 
     @staticmethod
@@ -83,7 +83,7 @@ class Simulation:
             .fillna({'thermostat_state': "off"})
             .reset_index(drop=True)
             .assign(
-                shape_t_ext=lambda df: 15-df["temperature_ext2"],
+                shape_t_ext=lambda df: 15-df["temperature_ext"],
                 P_consigne=self.P_consigne
                 )
             )
@@ -92,7 +92,7 @@ class Simulation:
     @staticmethod
     def compute_Tlim(features_row, parameters, is_heating):
         return (
-            features_row["temperature_ext2"] + parameters[0] * (
+            features_row["temperature_ext"] + parameters[0] * (
                 features_row["P_consigne"] * is_heating +
                 parameters[2] * features_row["direct_radiation"] +
                 parameters[3] * features_row["shape_t_ext"]
