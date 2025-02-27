@@ -92,6 +92,7 @@ with st.expander("See models performance"):
             st.markdown("### Doigt mouillé")
             parameters=[8e-3, 2.5e6, 80, 100, 5]
             prediction_df = model.predict(parameters)
+            model.plot_paintings(parameters)
             plot_pred(prediction_df, parameters)
 
             st.markdown("### Powell >24th Jan 25")
@@ -107,6 +108,7 @@ with st.expander("See models performance"):
             st.markdown("### Nabu opti 10 days")
             parameters=[5.20e-3, 1.07e6, -1.45e1, 1.45e2, 2]
             prediction_df = model.predict(parameters)
+            model.plot_paintings(parameters)
             plot_pred(prediction_df, parameters)
 
 
