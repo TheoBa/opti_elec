@@ -1,0 +1,24 @@
+{
+    "caussa": {
+        "HA_domain_name": "https://17blacroix.duckdns.org:8123",
+        "latitude": 48.864716,
+        "longitude": 2.349014,
+        "entities": {
+            "temperature_int": "sensor.capteur_salon_temperature",
+            "temperature_ext": "sensor.paris_17eme_arrondissement_temperature",
+            "radiateur": "input_boolean.radiateur_bureau_switch"
+        }, 
+        "db_name": "caussa_db"
+    },
+    "nabu": {
+        "HA_domain_name": "https://eixg1cxww5gtwlwziox2phscyeuvbuwf.ui.nabu.casa",
+        "latitude": 48.411640,
+        "longitude": 3.491938,
+        "entity": {
+            "temperature_int": "sensor.th_03_temperature",
+            "temperature_ext": "weather.forecast_maison",
+            "radiateur": "switch.radiateur_bureau"
+        }, 
+        "db_name": "nabu_db"
+    }
+}
