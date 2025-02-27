@@ -1,5 +1,6 @@
 {
     "caussa": {
+        "module_name": "caussa",
         "HA_domain_name": "https://17blacroix.duckdns.org:8123",
         "latitude": 48.864716,
         "longitude": 2.349014,
@@ -13,6 +14,7 @@
         "P_consigne": 2500
     },
     "nabu": {
+        "module_name": "nabu",
         "HA_domain_name": "https://eixg1cxww5gtwlwziox2phscyeuvbuwf.ui.nabu.casa",
         "latitude": 48.411640,
         "longitude": 3.491938,

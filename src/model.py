@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
+import datetime as dt
+from src.data_loader import populate_database
 from src.data_processing import prepare_switch_df, prepare_temperature_df, prepare_weather_df
 
 
@@ -88,6 +90,14 @@ class TemperatureModel:
             .loc[lambda x: x["date"] < predict_timeframe[1]]
         )
     
+    def log_run(self, train_timeframe):
+        date = dt.datetime.now()
+        params = self.optimal_parameters
+        module_name = self.module_config["module_name"]
+        row = [date, module_name, train_timeframe] + list(params)
+        df = pd.DataFrame([row], columns=["date", "module_name", "train_timeframe", "R", "C", "alpha", "Pvoisin", "time_shift"])
+        populate_database(df, "data/logs/runs.csv")
+
     def get_optimal_parameters(self, train_timeframe=None):
         from src.optimizer import optimize_parameters
 
@@ -113,6 +123,7 @@ class TemperatureModel:
                 st.markdown(f"Parameters: {result['parameters']}")
                 st.markdown(f"RMSE: {result['rmse']:.6f}")
                 self.optimal_parameters = result['parameters']
+                self.log_run(train_timeframe)
 
     def test_model(self, test_timeframe=None, test_parameters=None, use_optimal_parameters=False):
         """"
