@@ -9,7 +9,7 @@ import streamlit as st
 # He could then see how his thermal module would behave thanks to metrics and graphs displayed.
 
 class Simulation:
-    def __init__(self, mode="forecasted", parameters=[7.37e-3, 4e6, 71.8, 104, 4]):
+    def __init__(self, module_config, mode="forecasted", parameters=[7.37e-3, 4e6, 71.8, 104, 4]):
         self.mode = mode
         self.parameters = parameters
         self.P_consigne = 2500
@@ -17,16 +17,18 @@ class Simulation:
         self.target_temperature = 19
         self.hysteresis = 0.5
         self.simulation_df = None
+        self.module_config = module_config
 
     def load_forecasted_data(self):
         self.forecasted_data_df = (
-            pd.read_csv("data/db/weather.csv")
+            pd.read_csv(f"data/{self.module_config["db_name"]}/weather.csv")
             .pipe(prepare_weather_df)
             .pipe(self.filter_forecast_timeframe)
             .assign(
                 hour=lambda df: df['date'].dt.hour,
                 minute=lambda df: df['date'].dt.minute
             )
+            .rename(columns={"temperature": "temperature_ext"})
             .loc[:,["date", "hour", "minute", "temperature_ext", "direct_radiation"]]
             )
 

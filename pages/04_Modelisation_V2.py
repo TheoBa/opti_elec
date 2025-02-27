@@ -101,6 +101,12 @@ with st.expander("See models performance"):
     prediction_df = model.predict(parameters)
     plot_pred(prediction_df, parameters)
 
+    st.markdown("### Nabu opti 10 days")
+    parameters=[5.20e-03, 1.069e+06, -1.45e+01, 1.45e+02, 2]
+    prediction_df = model.predict(parameters)
+    plot_pred(prediction_df, parameters)
+
+
 button = st.button("Find optimal parameters ?")
 if button:
     with st.spinner("Parameters optimisation in progress..."):
@@ -162,7 +168,11 @@ with st.expander("See scenario output"):
         scenario = st.selectbox("Scenario", ["teletravail", "normal"])
         btn = st.form_submit_button("Submit")
     if btn:
-        simu = Simulation()
+        simu = Simulation(
+            module_config=config[module_name],
+            mode="forecasted",
+            parameters=[1.11e-02, 4.26e+06, 6.32e+01, 6.34e+01, 2.0e+00]
+        )
         simu.load_forecasted_data()
         simu.create_simulation_features(heating_scenario=scenario)
         simu.compute_temperature_int()
