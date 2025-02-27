@@ -23,7 +23,7 @@ class TemperatureModel:
     def build_features_df(self):
         self.features_df = (
             self.weather_df.copy()
-            .merge(self.temperature_int_df, on='date', how='outer', suffixes=["_ext", "_int"])
+            .merge(self.temperature_int_df, on='date', how='right', suffixes=["_ext", "_int"])
             .merge(self.switch_df, on='date', how='outer')
             .loc[:, ['date', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature', 'temperature_int', 'state', 'direct_radiation']]
             .loc[lambda x: x["date"]> '2025-01-04']
