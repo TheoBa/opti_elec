@@ -9,11 +9,11 @@ class TemperatureModel:
         self.features_df = None
         self.P_consigne = P_consigne
 
-    def load_data(self, PATH_FILES):
-        self.temperature_ext_df = pd.read_csv(PATH_FILES["temperature_ext_csv"], sep=",")
-        self.temperature_int_df = pd.read_csv(PATH_FILES["temperature_int_csv"], sep=",")
-        self.switch_df = pd.read_csv(PATH_FILES["switch_csv"], sep=",")
-        self.weather_df = pd.read_csv(PATH_FILES["weather_csv"], sep=",")
+    def load_data(self, module_config):
+        self.temperature_ext_df = pd.read_csv(f"data/{module_config["db_name"]}/temperature_ext.csv", sep=",")
+        self.temperature_int_df = pd.read_csv(f"data/{module_config["db_name"]}/temperature_int.csv", sep=",")
+        self.switch_df = pd.read_csv(f"data/{module_config["db_name"]}/radiateur.csv", sep=",")
+        self.weather_df = pd.read_csv(f"data/{module_config["db_name"]}/weather.csv", sep=",")
 
     def preprocess_data(self):
         self.temperature_ext_df = prepare_temperature_df(self.temperature_ext_df)
