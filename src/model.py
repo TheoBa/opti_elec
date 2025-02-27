@@ -4,6 +4,7 @@ import streamlit as st
 import datetime as dt
 from src.data_loader import populate_database
 from src.data_processing import prepare_switch_df, prepare_temperature_df, prepare_weather_df
+import plotly.graph_objects as go
 
 
 class TemperatureModel:
@@ -144,6 +145,69 @@ class TemperatureModel:
         test_df = self.predict(test_parameters)
         rmse = self.cost_function_wrapped(test_parameters)
         return test_df, rmse
+    
+    def plot_paintings(self, parameters):
+        """
+        Plot Tlim contributions as a stacked area chart showing how:
+        Tlim = T_ext + T_heating + T_radiation + T_voisin
+        """
+        df = (
+            self.features_df.copy()
+            .assign(
+                state=lambda df: df["state"].shift(int(parameters[4])),
+                shape_t_ext=lambda df: 15-df["temperature_ext"],
+                is_heating=lambda df: (df["state"]=="on").astype(int),
+                T_heating=lambda df: parameters[0] * self.P_consigne * df["is_heating"],
+                T_radiation=lambda df: parameters[0] * parameters[2] * df["direct_radiation"],
+                T_voisin=lambda df: parameters[0] * parameters[3] * df["shape_t_ext"],
+                T_lim=lambda df: df["temperature_ext"] + df["T_heating"] + df["T_radiation"] + df["T_voisin"],
+            )
+        )
+        
+        fig = go.Figure()
+        
+        # Add base temperature (T_ext)
+        fig.add_trace(
+            go.Scatter(
+                x=df['date'],
+                y=df['temperature_ext'],
+                name='T_ext',
+                fill='tonexty',
+                mode='lines'
+            )
+        )
+        
+        # Add each contribution on top of the previous one
+        current_sum = df['temperature_ext'].copy()
+        
+        for contribution in ['T_heating', 'T_radiation', 'T_voisin']:
+            current_sum += df[contribution]
+            fig.add_trace(
+                go.Scatter(
+                    x=df['date'],
+                    y=current_sum,
+                    name=contribution,
+                    fill='tonexty',
+                    mode='lines'
+                )
+            )
+        
+        fig.add_trace(
+            go.Scatter(
+                x=df['date'],
+                y=df["T_lim"],
+                name="T_lim"
+            )
+        )
+        
+        fig.update_layout(
+            title='Temperature Limit Contributions',
+            xaxis_title='Date',
+            yaxis_title='Temperature (°C)',
+            showlegend=True
+        )
+        
+        st.plotly_chart(fig)
 
 
 def compute_temperature_int(t, T0, Tlim, R, C):
