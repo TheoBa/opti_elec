@@ -21,18 +21,9 @@ if st.button("update databases"):
     update_db(config["nabu"])
     st.success("Databases updated")
 
-cols = st.columns([1,5])
-with cols[0]:
-    module_name = st.selectbox("Select module", ["caussa", "nabu"], )
-model = TemperatureModel(module_config=config[module_name])
-model.load_data()
-model.preprocess_data()
-model.build_features_df()
-
 def plot_temperatures(features_df):
-        import plotly.graph_objects as go
         fig = go.Figure()
-        for c in ['temperature_ext', 'all_day_temperature', 'roll5_avg_temperature']:
+        for c in ['temperature_int', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature']:
             fig.add_trace(
                 go.Scatter(
                     x=features_df['date'],
@@ -40,13 +31,14 @@ def plot_temperatures(features_df):
                     name=c,
                 )
             )
+            fig.update_layout(
+                title='Temp evolution',
+                xaxis_title='Date',
+                yaxis_title='Temperature (°C)',
+                legend_title='Legend',
+            )
         st.plotly_chart(fig)
-
-with st.expander("See input features_df & temperatures"):
-    st.dataframe(model.features_df.head())
-
-    plot_temperatures(features_df=model.features_df)
-
+   
 def get_rmse(pred_df):
         squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
         mse = squared_errors.mean()
@@ -83,28 +75,39 @@ def plot_pred(pred_df, parameters):
         st.metric("RMSE", round(get_rmse(pred_df), 2), border=True)
         st.plotly_chart(fig)
 
-model.debug_pred_df=False
-
 with st.expander("See models performance"):
-    st.markdown("### Doigt mouillé")
-    parameters=[8e-3, 2.5e6, 80, 100, 5]
-    prediction_df = model.predict(parameters)
-    plot_pred(prediction_df, parameters)
+    with st.form("Model perfo"):
+        cols = st.columns([1,5])
+        with cols[0]:
+            module_name = st.selectbox("Select module", ["caussa", "nabu"], )
+        model = TemperatureModel(module_config=config[module_name])
+        model.load_data()
+        model.preprocess_data()
+        model.build_features_df()
+        btn = st.form_submit_button("Submit")
+    if btn:
+        plot_temperatures(features_df=model.features_df)
 
-    st.markdown("### Powell >24th Jan 25")
-    parameters=[7.37e-3, 4e6, 71.8, 104, 4]
-    prediction_df = model.predict(parameters)
-    plot_pred(prediction_df, parameters)
+        if module_name=="caussa":
+            st.markdown("### Doigt mouillé")
+            parameters=[8e-3, 2.5e6, 80, 100, 5]
+            prediction_df = model.predict(parameters)
+            plot_pred(prediction_df, parameters)
 
-    st.markdown("### Powell all data")
-    parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
-    prediction_df = model.predict(parameters)
-    plot_pred(prediction_df, parameters)
+            st.markdown("### Powell >24th Jan 25")
+            parameters=[7.37e-3, 4e6, 71.8, 104, 4]
+            prediction_df = model.predict(parameters)
+            plot_pred(prediction_df, parameters)
 
-    st.markdown("### Nabu opti 10 days")
-    parameters=[5.20e-03, 1.069e+06, -1.45e+01, 1.45e+02, 2]
-    prediction_df = model.predict(parameters)
-    plot_pred(prediction_df, parameters)
+            st.markdown("### Powell all data")
+            parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
+            prediction_df = model.predict(parameters)
+            plot_pred(prediction_df, parameters)
+        elif module_name=="nabu":
+            st.markdown("### Nabu opti 10 days")
+            parameters=[5.20e-3, 1.07e6, -1.45e1, 1.45e2, 2]
+            prediction_df = model.predict(parameters)
+            plot_pred(prediction_df, parameters)
 
 
 button = st.button("Find optimal parameters ?")
