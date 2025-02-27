@@ -5,15 +5,15 @@ from src.data_processing import prepare_switch_df, prepare_temperature_df, prepa
 
 
 class TemperatureModel:
-    def __init__(self, P_consigne):
+    def __init__(self, module_config):
         self.features_df = None
-        self.P_consigne = P_consigne
+        self.P_consigne = module_config["P_consigne"]
+        self.module_config = module_config
 
-    def load_data(self, module_config):
-        self.temperature_ext_df = pd.read_csv(f"data/{module_config["db_name"]}/temperature_ext.csv", sep=",")
-        self.temperature_int_df = pd.read_csv(f"data/{module_config["db_name"]}/temperature_int.csv", sep=",")
-        self.switch_df = pd.read_csv(f"data/{module_config["db_name"]}/radiateur.csv", sep=",")
-        self.weather_df = pd.read_csv(f"data/{module_config["db_name"]}/weather.csv", sep=",")
+    def load_data(self):
+        for k, v in self.module_config["entities"].items():
+            setattr(self, f"{k}_df", pd.read_csv(f"data/{self.module_config["db_name"]}/{k}.csv", sep=","))
+        self.weather_df = pd.read_csv(f"data/{self.module_config["db_name"]}/weather.csv", sep=",")
 
     def preprocess_data(self):
         self.temperature_ext_df = prepare_temperature_df(self.temperature_ext_df)

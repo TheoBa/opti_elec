@@ -6,10 +6,11 @@
         "entities": {
             "temperature_int": "sensor.capteur_salon_temperature",
             "temperature_ext": "sensor.paris_17eme_arrondissement_temperature",
-            "radiateur": "input_boolean.radiateur_bureau_switch"
+            "switch": "input_boolean.radiateur_bureau_switch"
         }, 
         "db_name": "caussa_db",
-        "API_TOKEN": "API_TOKEN_CAUSSA"
+        "API_TOKEN": "API_TOKEN_CAUSSA",
+        "P_consigne": 2500
     },
     "nabu": {
         "HA_domain_name": "https://eixg1cxww5gtwlwziox2phscyeuvbuwf.ui.nabu.casa",
@@ -18,9 +19,10 @@
         "entities": {
             "temperature_int": "sensor.th_03_temperature",
             "temperature_ext": "weather.forecast_maison",
-            "radiateur": "switch.radiateur_bureau"
+            "switch": "switch.radiateur_bureau"
         }, 
         "db_name": "nabu_db",
-        "API_TOKEN": "API_TOKEN_NABU"
+        "API_TOKEN": "API_TOKEN_NABU",
+        "P_consigne": 1800
     }
 }

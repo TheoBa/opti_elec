@@ -21,10 +21,11 @@ if st.button("update databases"):
     update_db(config["nabu"])
     st.success("Databases updated")
 
-model = TemperatureModel(
-    P_consigne=2500
-)
-model.load_data(config["caussa"])
+cols = st.columns([1,5])
+with cols[0]:
+    module_name = st.selectbox("Select module", ["caussa", "nabu"], )
+model = TemperatureModel(module_config=config[module_name])
+model.load_data()
 model.preprocess_data()
 model.build_features_df()
 
