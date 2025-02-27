@@ -16,17 +16,15 @@ class TemperatureModel:
         self.weather_df = pd.read_csv(f"data/{self.module_config["db_name"]}/weather.csv", sep=",")
 
     def preprocess_data(self):
-        self.temperature_ext_df = prepare_temperature_df(self.temperature_ext_df)
         self.temperature_int_df = prepare_temperature_df(self.temperature_int_df)
         self.switch_df = prepare_switch_df(self.switch_df)
         self.weather_df = prepare_weather_df(self.weather_df)
 
     def build_features_df(self):
         self.features_df = (
-            self.temperature_ext_df.copy()
+            self.weather_df.copy()
             .merge(self.temperature_int_df, on='date', how='outer', suffixes=["_ext", "_int"])
             .merge(self.switch_df, on='date', how='outer')
-            .merge(self.weather_df, on='date', how='left')
             .loc[:, ['date', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature', 'temperature_int', 'state', 'direct_radiation']]
             .loc[lambda x: x["date"]> '2025-01-04']
         )
