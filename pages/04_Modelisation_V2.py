@@ -32,7 +32,7 @@ model.build_features_df()
 def plot_temperatures(features_df):
         import plotly.graph_objects as go
         fig = go.Figure()
-        for c in ['temperature_ext', 'temperature_ext2', 'all_day_temperature', 'roll5_avg_temperature']:
+        for c in ['temperature_ext', 'all_day_temperature', 'roll5_avg_temperature']:
             fig.add_trace(
                 go.Scatter(
                     x=features_df['date'],
@@ -136,7 +136,7 @@ def plot_simu(simu):
         st.metric("delta_t", parameters[4], border=True)
     with col2:
         fig = go.Figure()
-        for c in ['T_int_pred', 'direct_radiation', 'temperature_ext2']:
+        for c in ['T_int_pred', 'direct_radiation', 'temperature_ext']:
             fig.add_trace(
                 go.Scatter(
                     x=pred_df['date'],
