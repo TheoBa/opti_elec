@@ -70,6 +70,7 @@ On considère 3 sources de puissance échangée:
 ${\displaystyle {\mathcal {P_{heat}(t) = \delta_{switch}(t) \cdot \mathcal{P_{consigne}}}}}$
 
 Avec la fonction indicatrice:
+
 <img src="https://latex.codecogs.com/svg.image?{\delta_{switch}(t)}=\left\{\begin{matrix}1&{si}&{switch=ON}\\0&{sinon.}\\\end{matrix}\right." />
 
 ${\displaystyle {\mathcal {P_{sun}(t)}}} = \alpha_{enso} \cdot \mathcal{P_{radiations}(t)}$
