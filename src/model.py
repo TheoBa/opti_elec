@@ -151,8 +151,13 @@ class TemperatureModel:
         Plot Tlim contributions as a stacked area chart showing how:
         Tlim = T_ext + T_heating + T_radiation + T_voisin
         """
+        today = dt.date.today().strftime("%Y-%m-%d")
+        lower_bound = (dt.datetime.strptime(today, "%Y-%m-%d") - dt.timedelta(days=10)).strftime("%Y-%m-%d")
+        plot_timeframe = [str(lower_bound), str(today)]
         df = (
             self.features_df.copy()
+            .loc[lambda x: x["date"] > plot_timeframe[0]]
+            .loc[lambda x: x["date"] < plot_timeframe[1]]
             .assign(
                 state=lambda df: df["state"].shift(int(parameters[4])),
                 shape_t_ext=lambda df: 15-df["temperature_ext"],
