@@ -52,7 +52,7 @@ def get_json_data(module_config, entity_id="", historic_length=10):
     headers = {
         "Authorization": f"Bearer " + TOKEN
     }
-    response = requests.request("GET", url, headers=headers)
+    response = requests.request("GET", url, headers=headers, timeout=10)
     return parse_data_string(response.text)[0][1:]
 
 def json_to_df(inputs, column_names):
