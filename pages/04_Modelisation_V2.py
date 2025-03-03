@@ -2,8 +2,11 @@ import streamlit as st
 from src.model import TemperatureModel
 import plotly.graph_objects as go
 from src.sandbox import Simulation
-from src.data_loader import update_db, ENTITY_IDS_CAUSSA, ENTITY_IDS_NABU
+from src.data_loader import update_db
 import json
+import datetime as dt
+import pandas as pd
+from src.validation import validate_model
 
 st.set_page_config(
     page_title='Modelisation V2', 
@@ -74,9 +77,26 @@ def plot_pred(pred_df, parameters):
         )
         st.metric("RMSE", round(get_rmse(pred_df), 2), border=True)
         st.plotly_chart(fig)
+    
+def prepare_logs():
+    return (
+        pd.read_csv("data/logs/runs.csv", sep=',')
+        .assign(date=lambda x: pd.to_datetime(x['date']))
+        .assign(parameters=lambda x: x[['R', 'C', 'alpha', 'Pvoisin', 'time_shift']].values.tolist())
+        .assign(parameters_str=lambda x: x['parameters'].apply(lambda y: f"R={y[0]}, C={y[1]}, alpha={y[2]}, Pvoisin={y[3]}, delta_t={y[4]}"))
+    )
+
+def get_params_from_model(log_runs, model_name):
+    df = (
+        log_runs[log_runs["module_name"] == module_name].copy()
+        .sort_values(by='date', ascending=False)
+        .reset_index(drop=True)
+    )
+    return df.iloc[0]['parameters']
 
 with st.expander("See models performance"):
     with st.form("Model perfo"):
+        log_runs = prepare_logs()
         cols = st.columns([1,5])
         with cols[0]:
             module_name = st.selectbox("Select module", ["caussa", "nabu"], )
@@ -87,44 +107,43 @@ with st.expander("See models performance"):
         btn = st.form_submit_button("Submit")
     if btn:
         plot_temperatures(features_df=model.features_df)
+        st.markdown(f"### Latest trained model for {module_name}")
+        parameters=get_params_from_model(log_runs, module_name)
+        prediction_df = model.predict(parameters)
+        model.plot_paintings(parameters)
+        plot_pred(prediction_df, parameters)
 
-        if module_name=="caussa":
-            st.markdown("### Doigt mouillé")
-            parameters=[8e-3, 2.5e6, 80, 100, 5]
-            prediction_df = model.predict(parameters)
-            model.plot_paintings(parameters)
-            plot_pred(prediction_df, parameters)
-
-            st.markdown("### Powell >24th Jan 25")
-            parameters=[7.37e-3, 4e6, 71.8, 104, 4]
-            prediction_df = model.predict(parameters)
-            plot_pred(prediction_df, parameters)
-
-            st.markdown("### Powell all data")
-            parameters=[1.02e-2, 4.28e6, 87, 65.5, 2]
-            prediction_df = model.predict(parameters)
-            plot_pred(prediction_df, parameters)
-        elif module_name=="nabu":
-            st.markdown("### Nabu opti 10 days")
-            parameters=[5.20e-3, 1.07e6, -1.45e1, 1.45e2, 2]
-            prediction_df = model.predict(parameters)
-            model.plot_paintings(parameters)
-            plot_pred(prediction_df, parameters)
-
-
-button = st.button("Find optimal parameters ?")
-if button:
-    with st.spinner("Parameters optimisation in progress..."):
-        model.debug_pred_df=False
-        model.get_optimal_parameters(
-            # train_timeframe=['2025-01-24', '2025-02-20']
+with st.expander("Find optimal parameters ?"):
+    with st.form("Optimal parameters"):
+        cols = st.columns([1,5])
+        with cols[0]:
+            module_name = st.selectbox("Which model to train", ["caussa", "nabu"])
+        with cols[1]:
+            train_timeframe = st.date_input(
+            "Training timeframe",
+            value=[dt.date(2025, 1, 24), dt.date(2025, 3, 3)],
+            min_value=dt.date(2025, 1, 24),
+            max_value=dt.date.today(),
+            format="YYYY-MM-DD"
             )
-    st.success("Done!")
+            all_data = st.toggle("Use all data")
+        submitted = st.form_submit_button("Train model")
+        if submitted:
+            model = TemperatureModel(module_config=config[module_name])
+            model.load_data()
+            model.preprocess_data()
+            model.build_features_df()
+            train_timeframe = [str(date) for date in train_timeframe]
+            if all_data:
+                train_timeframe = None
+            with st.spinner("Parameters optimisation in progress..."):
+                model.get_optimal_parameters(train_timeframe=train_timeframe)
+            st.success("Done!")
 
 validation_button = st.button("Validate model")
 if validation_button:
     with st.spinner("Model validation in progress..."):
-        from src.validation import validate_model
+        
         train_timeframe = ['2025-01-24', '2025-02-10']
         test_timeframe=['2025-02-11', '2025-02-11']
         prediction_df, rmse = validate_model(
