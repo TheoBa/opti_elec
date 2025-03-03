@@ -110,7 +110,7 @@ En prenant en compte les conditions initiales, les solutions de (E) en fonction 
 
 <img src="https://latex.codecogs.com/svg.image?(1)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{lim}&plus;[T_{0}-T_{lim}]*e^{\frac{-t}{\tau}}}}}" /> 
 
-où: <img src="https://latex.codecogs.com/svg.image?T_{lim}=T_{ext}&plus;{\frac{\tau}{C}*[\delta_{switch}(t) \cdot {P_{consigne}}+ \alpha_{enso} \cdot {P_{radiations}(t) + G(T_{ext}) \cdot {P_{adj}]}" />
+où: <img src="https://latex.codecogs.com/svg.image?T_{lim}=T_{ext}&plus;{\frac{\tau}{C}*[\delta_{switch}(t)\cdot{P_{consigne}}&plus;\alpha_{enso}\cdot{P_{radiations}(t)&plus;G(T_{ext})\cdot{P_{adj}]}" />
 
 
 ## Apprentissage
