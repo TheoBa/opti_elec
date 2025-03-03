@@ -56,7 +56,7 @@ ${\displaystyle \Phi ={\frac {\delta Q}{\delta t}}={\dot {Q}}}$
 
 Par ailleurs, la variation de quantité de chaleur échangée entre deux instants s'écrit:
 
-${\displaystyle {\frac {\delta Q}{\delta t}}=\rho \,c_{P}\,{\frac {\partial T}{\partial t}}=C\,{\frac {\partial T}{\partial t}}}$
+${\displaystyle {\frac {\delta Q}{\delta t}}=\rho \cdot c_{P} \cdot {\frac {\partial T}{\partial t}}=C \cdot {\frac {\partial T}{\partial t}}}$
 
 ## Puissances échangées
 On considère ${\displaystyle {\mathcal {P_{tot}}}}$, la `puissance totale` échangée entre le module et l'extérieur.
@@ -69,8 +69,8 @@ On considère 3 sources de puissance échangée:
 ### Expressions des puissances
 ${\displaystyle {\mathcal {P_{heat}(t) = \delta_{switch}(t) \cdot \mathcal{P_{consigne}}}}}$
 
-
-<img src="https://latex.codecogs.com/svg.image?Avec: {\delta_{switch}(t)}=\left\{\begin{matrix}1&{si}&{switch=ON}\\0&{sinon.}\\\end{matrix}\right." />
+Avec la fonction indicatrice:
+${\delta_{switch}(t)}=\left\{\begin{matrix}1&{si}&{switch=ON}\\0&{sinon.}\\\end{matrix}\right.$
 
 ${\displaystyle {\mathcal {P_{sun}(t)}}} = \alpha_{enso} \cdot \mathcal{P_{radiations}(t)}$
 
