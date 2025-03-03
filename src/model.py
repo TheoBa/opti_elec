@@ -38,6 +38,12 @@ class TemperatureModel:
         mse = squared_errors.mean()
         rmse = mse ** 0.5
         return rmse
+    
+    def cost_function_wrapped_MAE(self, parameters):
+        pred_df = self.predict(parameters)
+        squared_errors = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
+        mae = squared_errors.mean()
+        return mae
 
     def predict(self, parameters):
         """
@@ -108,7 +114,7 @@ class TemperatureModel:
             self.pred_df = self.select_timeframe(self.features_df, train_timeframe)
         else:
             self.pred_df = self.features_df
-        opti_func = self.cost_function_wrapped
+        opti_func = self.cost_function_wrapped_MAE
 
         results = optimize_parameters(
             loss_function=opti_func,
@@ -172,7 +178,7 @@ class TemperatureModel:
         fig = go.Figure()
 
         # Add each contribution as a separate bar in the bar chart
-        for contribution in ['temperature_ext', 'T_heating', 'T_radiation', 'T_voisin']:
+        for contribution in ['temperature_ext', 'T_voisin', 'T_radiation', 'T_heating']:
             fig.add_trace(
                 go.Bar(
                     x=df['date'],

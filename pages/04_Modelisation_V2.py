@@ -113,7 +113,7 @@ with st.expander("See models performance"):
         model.plot_paintings(parameters)
         plot_pred(prediction_df, parameters)
 
-with st.expander("Find optimal parameters ?"):
+with st.expander("Train a model - single run"):
     with st.form("Optimal parameters"):
         cols = st.columns([1,5])
         with cols[0]:
@@ -121,9 +121,7 @@ with st.expander("Find optimal parameters ?"):
         with cols[1]:
             train_timeframe = st.date_input(
             "Training timeframe",
-            value=[dt.date(2025, 1, 24), dt.date(2025, 3, 3)],
-            min_value=dt.date(2025, 1, 24),
-            max_value=dt.date.today(),
+            value=[dt.date.today() - dt.timedelta(days=20), dt.date.today()],
             format="YYYY-MM-DD"
             )
             all_data = st.toggle("Use all data")
