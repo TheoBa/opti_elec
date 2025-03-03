@@ -163,50 +163,27 @@ class TemperatureModel:
                 T_lim=lambda df: df["temperature_ext"] + df["T_heating"] + df["T_radiation"] + df["T_voisin"],
             )
         )
-        
+
         fig = go.Figure()
-        
-        # Add base temperature (T_ext)
-        fig.add_trace(
-            go.Scatter(
-                x=df['date'],
-                y=df['temperature_ext'],
-                name='T_ext',
-                fill='tonexty',
-                mode='lines'
-            )
-        )
-        
-        # Add each contribution on top of the previous one
-        current_sum = df['temperature_ext'].copy()
-        
-        for contribution in ['T_heating', 'T_radiation', 'T_voisin']:
-            current_sum += df[contribution]
+
+        # Add each contribution as a separate bar in the bar chart
+        for contribution in ['temperature_ext', 'T_heating', 'T_radiation', 'T_voisin']:
             fig.add_trace(
-                go.Scatter(
+                go.Bar(
                     x=df['date'],
-                    y=current_sum,
-                    name=contribution,
-                    fill='tonexty',
-                    mode='lines'
+                    y=df[contribution],
+                    name=contribution
                 )
             )
-        
-        fig.add_trace(
-            go.Scatter(
-                x=df['date'],
-                y=df["T_lim"],
-                name="T_lim"
-            )
-        )
-        
+
         fig.update_layout(
             title='Temperature Limit Contributions',
             xaxis_title='Date',
             yaxis_title='Temperature (°C)',
-            showlegend=True
+            showlegend=True,
+            barmode='stack'  # This makes the bar chart stacked
         )
-        
+
         st.plotly_chart(fig)
 
 
