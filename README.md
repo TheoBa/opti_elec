@@ -19,7 +19,7 @@ Une modélisation thermique avec des hypothèses thermiques moins contraignantes
 Cette approche nous a non seulemement permis d'obtenir des résultats plus fiables mais surtout de mieux appréhender les différents phénomènes thermiques en jeu et d'éventuellement les ajouter dans la modélisation.
 
 Quelques jours / semaines plus tard Adrien Caussanel m'a fait découvrir le site [reimagine-energy.ai](https://www.reimagine-energy.ai/p/data-driven-efficiency-predicting) qui théorise précisément l'approche hybride que j'avais retenue sans le savoir!
-<img src="readme/graybox model.png" alt="Interest of grey-box model for thermal modeling" width="400"/>
+<img src="readme/graybox model.jpg" alt="Interest of grey-box model for thermal modeling" width="400"/>
 
 
 ## Les Différents transferts thermiques
@@ -42,65 +42,84 @@ Quelques jours / semaines plus tard Adrien Caussanel m'a fait découvrir le site
 
 ${\displaystyle \Phi^{\mathrm {ray}} =S\,\varepsilon \,\sigma \,T^{4}}$ 
 
+
+On omet la composante radiative des transferts thermiques dans un premier temps.\
+Le flux thermique total est alors donné par la combinaison des phénomènes convectifs et conductifs entre extérieur et intérieur en série se combinent si bien que 
+<img src="https://latex.codecogs.com/svg.image?{\displaystyle{\Phi&space;_{1\rightarrow&space;2}^{TT}}={\frac{T_{ext}-T_{int}}{R_{th}}}}" />
+
 ## **Les Différents transferts thermiques**
 
 ## Expression générale du flux thermique
-Par construction on peut relier le flux thermique à une quantité de chaleur échangée par unité de temps selon:
+Par construction on peut relier le `flux thermique` à une `variation de quantité de chaleur` échangée selon:
 
-${\displaystyle \Phi ={\frac {\delta Q}{\mathrm {d} t}}={\dot {Q}}}$
+${\displaystyle \Phi ={\frac {\delta Q}{\delta t}}={\dot {Q}}}$
 
 Par ailleurs, la variation de quantité de chaleur échangée entre deux instants s'écrit:
 
-${\displaystyle {\frac {\delta Q}{\mathrm {d} t}}=\rho \,c_{P}\,{\frac {\partial T}{\partial t}}=C\,{\frac {\partial T}{\partial t}}}$
+${\displaystyle {\frac {\delta Q}{\delta t}}=\rho \,c_{P}\,{\frac {\partial T}{\partial t}}=C\,{\frac {\partial T}{\partial t}}}$
 
-**Hypothèses:** Le HomeModule est assimilé à un objet ponctuel homogène, si bien que les phénomènes internes de convections sont négligés.\
-On omet volontairement la composante radiative des transferts thermiques dans un premier temps.\
-Si bien que la combinaison des phénomènes convectifs et conductifs entre extérieur et intérieur en série se combinent si bien que 
-<img src="https://latex.codecogs.com/svg.image?{\displaystyle{\Phi&space;_{1\rightarrow&space;2}^{TT}}={\frac{T_{ext}-T_{int}}{R_{th}}}}" />\
-On considère ${\displaystyle {\mathcal {P}}}$, l'énergie produite au sein du logement typiquement par les radiateurs.
+## Puissances échangées
+On considère ${\displaystyle {\mathcal {P_{tot}}}}$, la `puissance totale` échangée entre le module et l'extérieur.
 
-## Bilan énergétique
+On considère 3 sources de puissance échangée:
+- La puissance fournie par les radiateurs lorsqu'ils sont allumés: ${\displaystyle {\mathcal {P_{heat}}}}$
+- La puissance fournie par les radiations solaires: ${\displaystyle {\mathcal {P_{sun}}}}$
+- La puissance échangée avec les modules thermiques adjacents: ${\displaystyle {\mathcal {P_{adj}}}}$
+
+### Expressions des puissances
+${\displaystyle {\mathcal {P_{heat}(t) = \delta_{switch}(t) \cdot \mathcal{P_{consigne}}}}}$
+
+
+<img src="https://latex.codecogs.com/svg.image?Avec: {\delta_{switch}(t)}=\left\{\begin{matrix}1&{si}&{switch=ON}\\0&{sinon.}\\\end{matrix}\right." />
+
+${\displaystyle {\mathcal {P_{sun}(t)}}} = \alpha_{enso} \cdot \mathcal{P_{radiations}(t)}$
+
+${\displaystyle {\mathcal {P_{adj}(t)}}} = P_{voisin} \cdot G(Text)$
+
+Où $G(Text)$ est une `fonction de shaping` inversement proportionnelle à la température extérieure.
+
+## Equation différentielle
 Le `bilan de puissance` donne:
 
 <img src="https://latex.codecogs.com/svg.image?{\displaystyle{\Phi={\Phi&space;_{1\rightarrow&space;2}^{TT}}&plus;{\mathcal{P}}}\Leftrightarrow{C\,{\frac{\partial&space;T}{\partial&space;t}}={\frac{T_{ext}-T_{int}}{R_{\mathrm{th}}}&plus;{\mathcal{P}}}}\Leftrightarrow{{\frac{\partial&space;T}{\partial&space;t}}={\frac{T_{ext}-T_{int}}{R_{\mathrm{th}}C}}&plus;{\frac{\mathcal{P}}{C}}}}" />
 
 Enfin:
 
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}&plus;{\frac{\mathcal{P}}{C}}}}(E)" />
+<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}(t)&plus;{\frac{\mathcal{P}(t)}{C}}}}(E)" />
 
 Avec ${\displaystyle {\tau = R_{th}C}}$
 
-<img src="https://latex.codecogs.com/svg.image?{\mathcal{P}}=\left\{\begin{matrix}{\mathcal{P}_{rad}}&{si}&{switch=ON}\\0&{sinon.}\\\end{matrix}\right." />
+## Hypothèses et simplifications
+Pour résoudre directement l'équation différentielle $(E)$ une bonne idée à priori serait de se débarasser des composantes temporelles présentes à la droite du signe égal.
 
-## Equations différentielles
-$(E)$ donne alors:
+Ainsi on pourrait se trouver dans le cas bien connu d'une équation différentielle linéaire du premier ordre à coefficients constants.
 
-`COOLING (switch = OFF)`
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}}}(1)" />
 
-`HEATING (switch = ON)`
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}&plus;{\frac{\mathcal{P}}{C}}}}(2)" />
+Le problème étant que les puissances définies ainsi que la température extérieure ne sont pas constantes dans le temps. `À moins que ?`
 
-### Solutions
+Les variations de ces termes sont lentes au cours du temps. Si bien que l'on peut les considérer `constantes par morceaux` en considérant des intervalles de temps suffisamment petits: on choisit 5 minutes
+
+Sur un intervalle de temps donné, $(E)$ donne alors:
+
+<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{\frac{\partial&space;T_{int}}{\partial&space;t}}(t)&plus;{\frac{1}{\tau}}*T_{int}(t)={\frac{1}{\tau}}*T_{ext}&plus;{\frac{\mathcal{P}_{tot}}{C}}}}(1)" />
+
+## Solutions
 En prenant en compte les conditions initiales, les solutions de (E) en fonction de $\mathcal{P}$ sont:
 
-<img src="https://latex.codecogs.com/svg.image?(1)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{ext}&plus;[T_{0}-T_{ext}]*e^{\frac{-t}{\tau}}}}}" />
 
-<img src="https://latex.codecogs.com/svg.image?(2)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{lim}&plus;[T_{0}-T_{lim}]*e^{\frac{-t}{\tau}}}}}" /> 
+<img src="https://latex.codecogs.com/svg.image?(1)\Rightarrow{\boxed{\displaystyle{T_{int}=T_{lim}&plus;[T_{0}-T_{lim}]*e^{\frac{-t}{\tau}}}}}" /> 
 
-où: <img src="https://latex.codecogs.com/svg.image?T_{lim}=T_{ext}&plus;{\frac{\tau}{C}*{\mathcal{P}}}" />
-
-### Pente à l'origine
-Les expressions de la pente à l'origine de ces 2 solutions mettent en évidence 2 variables thermiques relatives au module étudié $C$ et $\tau$
-
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T^{cool}_{int}}}(0)=[T_{0}-T_{ext}]*{\frac{-1}{\tau}}}}}(1')" />
-
-<img src="https://latex.codecogs.com/svg.image?{\boxed{\displaystyle{{\dot{T^{heat}_{int}}}(0)=[T_{0}-T_{ext}&plus;{\frac{\tau}{C}*{\mathcal{P}}}]*{\frac{-1}{\tau}}}}}(2')" />
+où: <img src="https://latex.codecogs.com/svg.image?T_{lim}=T_{ext}&plus;{\frac{\tau}{C}*[\delta_{switch}(t) \cdot {P_{consigne}}+ \alpha_{enso} \cdot {P_{radiations}(t) + G(T_{ext}) \cdot {P_{adj}]}" />
 
 
-### Derive thermal constants
-On en déduit alors les expressions de $C$ et $\tau$
+## Apprentissage
+Pour l'instant - et c'est probablement amené à évoluer - on a paramétrisé la solution de l'équation différentielle par 5 paramètres:
+- $R_{th}$
+- $C$
+- $\alpha_{enso}$
+- $P_{adj}$
+- $\delta t$ (le décalage temporel entre le moment où on allume le chauffage et le moment où la température commence à augmenter sur le capteur, une manière dissimulée de prendre en compte le phénomène de transport de chaleur au sein même du module thermique)
 
-<img src="https://latex.codecogs.com/svg.image?(1')\Rightarrow{\boxed{{\tau}=\frac{[T_{0}-T_{ext}]}{{-{\dot{T^{cool}_{int}}}(0)}}}}" />
+On définit ensuite une fonction de coût qui est la somme des carrés des erreurs entre les températures prédites et les températures réelles.
 
-<img src="https://latex.codecogs.com/svg.image?(2')\Rightarrow{\boxed{\displaystyle&space;C={\frac{{\tau}*{\mathcal{P}}}{{\tau}*{\dot{T^{heat}_{int}}}(0)&plus;T_{0}-T_{ext}}}}}" />
+Puis on utilise ensuite une méthode de descente de gradient pour minimiser cette fonction de coût et en déduire les paramètres associés.
