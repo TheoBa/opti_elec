@@ -83,18 +83,19 @@ def get_params_from_model(log_runs, module_name):
 with st.expander("See models performance"):
     with st.form("Model perfo"):
         log_runs = prepare_logs()
-        cols = st.columns([1,5])
-        with cols[0]:
-            module_name = st.selectbox("Select module", ["caussa", "nabu"], )
+        st.markdown("### Models available")
+        st.dataframe(log_runs)
+        cols = st.columns([1, 2, 2])
+        with cols[1]:
+            model_index = st.selectbox("Select model to test", list(log_runs.index), 0)
+        btn = st.form_submit_button("Submit")
+    if btn:
+        module_name = log_runs.loc[model_index, "module_name"]
         model = TemperatureModel(module_config=config[module_name])
         model.load_data()
         model.preprocess_data()
         model.build_features_df()
-        btn = st.form_submit_button("Submit")
-    if btn:
-        # plot_temperatures(features_df=model.features_df)
-        st.markdown(f"### Latest trained model for {module_name}")
-        parameters=get_params_from_model(log_runs, module_name)
+        parameters = log_runs.loc[model_index, "parameters"]
         prediction_df = model.predict(parameters)
         model.plot_paintings(parameters)
         plot_pred(prediction_df, parameters)

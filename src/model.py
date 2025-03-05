@@ -123,8 +123,8 @@ class TemperatureModel:
         else:
             self.pred_df = self.features_df
             
-        opti_func = self.cost_function_wrapped_MAE
-        # opti_func = self.cost_function_wrapped_RMSE
+        # opti_func = self.cost_function_wrapped_MAE
+        opti_func = self.cost_function_wrapped_RMSE
 
         results = optimize_parameters(
             loss_function=opti_func,
@@ -184,7 +184,6 @@ class TemperatureModel:
                 T_lim=lambda df: df["temperature_ext"] + df["T_heating"] + df["T_radiation"] + df["T_voisin"],
             )
         )
-
         fig = go.Figure()
 
         # Add each contribution as a separate bar in the bar chart
