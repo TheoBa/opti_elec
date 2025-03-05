@@ -133,10 +133,16 @@ def update_db(module_config):
             column_names={"state": "temperature", "last_changed": "date"}
         else:
             column_names={"last_changed": "date"}
-        json_data = get_json_data(module_config, entity_id, historic_length=10)
-        df = json_to_df(json_data, column_names=column_names)
-        populate_database(df, f"data/{module_config["db_name"]}/{entity}.csv")
-    
+        try:
+            json_data = get_json_data(module_config, entity_id, historic_length=10)
+            df = json_to_df(json_data, column_names=column_names)
+            populate_database(df, f"data/{module_config["db_name"]}/{entity}.csv")
+        except Exception as e:
+            st.error(f"Error while updating {entity} database: {e}")
+            
+    try:
     # weather
-    df = get_past_weather_data2(module_config,past_days=10, forecast_days=3)
-    populate_database(df, f"data/{module_config["db_name"]}/weather.csv")
+        df = get_past_weather_data2(module_config,past_days=10, forecast_days=3)
+        populate_database(df, f"data/{module_config["db_name"]}/weather.csv")
+    except Exception as e:
+            st.error(f"Error while updating weather database: {e}")
