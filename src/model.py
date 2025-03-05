@@ -5,6 +5,7 @@ import datetime as dt
 from src.data_loader import populate_database
 from src.data_processing import prepare_switch_df, prepare_temperature_df, prepare_weather_df
 import plotly.graph_objects as go
+from src.optimizer import optimize_parameters
 
 
 class TemperatureModel:
@@ -92,7 +93,7 @@ class TemperatureModel:
             .loc[lambda x: x["date"] < predict_timeframe[1]]
         )
     
-    def log_run(self, train_timeframe):
+    def log_run(self, train_timeframe, temp_min, temp_max):
         date = dt.datetime.now()
         params = self.optimal_parameters
         pred_df = self.predict(params)
@@ -102,16 +103,23 @@ class TemperatureModel:
         df = df.assign(
             rmse=get_rmse(pred_df),
             mae=get_mae(pred_df),
+            temp_min=temp_min,
+            temp_max=temp_max,
         )
         populate_database(df, "data/logs/runs.csv")
 
-    def get_optimal_parameters(self, train_timeframe=None):
-        from src.optimizer import optimize_parameters
-
+    def get_optimal_parameters(self, train_timeframe=None, temp_min=None, temp_max=None):
         initial_guess = [1e-2, 4.3e6, 87, 65.5, 2] # R, C, alpha, Pvoisin, time_shift switch / T
 
         if train_timeframe:
             self.pred_df = self.select_timeframe(self.features_df, train_timeframe)
+        elif (temp_min or temp_max):
+            self.pred_df = select_features_from_temperature_window(self.features_df, temp_min, temp_max)
+            if len(self.pred_df.index) == 0:
+                self.pred_df = self.features_df
+                st.warning("No data in temperature window, using all data")
+                temp_max = None
+                temp_min = None
         else:
             self.pred_df = self.features_df
             
@@ -132,7 +140,7 @@ class TemperatureModel:
                 st.markdown(f"Parameters: {result['parameters']}")
                 st.markdown(f"RMSE: {result['rmse']:.6f}")
                 self.optimal_parameters = result['parameters']
-                self.log_run(train_timeframe)
+                self.log_run(train_timeframe, temp_min, temp_max)
 
     def test_model(self, test_timeframe=None, test_parameters=None, use_optimal_parameters=False):
         """"
@@ -213,3 +221,13 @@ def get_mae(pred_df):
         abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
         mae = abs_error.mean()
         return mae
+
+def select_features_from_temperature_window(features_df, temp_min=None, temp_max=None):
+    if (temp_min and temp_max):
+        return features_df.loc[lambda df: (df["all_day_temperature"] > temp_min) & (df["all_day_temperature"] < temp_max)]
+    elif temp_min:
+            return features_df.loc[lambda df: df["all_day_temperature"] > temp_min]
+    elif temp_max:
+        return features_df.loc[lambda df: df["all_day_temperature"] < temp_max]
+    else:
+        return features_df

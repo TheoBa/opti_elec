@@ -1,11 +1,11 @@
 import streamlit as st
-from src.model import TemperatureModel
+from src.model import TemperatureModel, get_rmse, get_mae
 import plotly.graph_objects as go
 from src.sandbox import Simulation
 from src.data_loader import update_db
 import json
 import datetime as dt
-import pandas as pd
+from src.utils import prepare_logs
 from src.validation import validate_model
 
 st.set_page_config(
@@ -41,17 +41,6 @@ def plot_temperatures(features_df):
                 legend_title='Legend',
             )
         st.plotly_chart(fig)
-   
-def get_rmse(pred_df):
-        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
-        mse = squared_errors.mean()
-        rmse = mse ** 0.5
-        return rmse
-
-def get_mae(pred_df):
-        abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
-        mae = abs_error.mean()
-        return mae
 
 def plot_pred(pred_df, parameters):
     col1, col2 = st.columns([1, 6])
@@ -82,14 +71,6 @@ def plot_pred(pred_df, parameters):
         )
         st.metric("RMSE", round(get_rmse(pred_df), 2), border=True)
         st.plotly_chart(fig)
-    
-def prepare_logs():
-    return (
-        pd.read_csv("data/logs/runs.csv", sep=',')
-        .assign(date=lambda x: pd.to_datetime(x['date']))
-        .assign(parameters=lambda x: x[['R', 'C', 'alpha', 'Pvoisin', 'time_shift']].values.tolist())
-        .assign(parameters_str=lambda x: x['parameters'].apply(lambda y: f"R={y[0]:.1e}, C={y[1]:.1e}, alpha={y[2]:.1e}, Pvoisin={y[3]:.1e}, delta_t={y[4]:.1e}"))
-    )
 
 def get_params_from_model(log_runs, module_name):
     df = (
@@ -120,7 +101,7 @@ with st.expander("See models performance"):
 
 with st.expander("Train a model - single run"):
     with st.form("Optimal parameters"):
-        cols = st.columns([1,5])
+        cols = st.columns([1, 2, 2])
         with cols[0]:
             module_name = st.selectbox("Which model to train", ["caussa", "nabu"])
         with cols[1]:
@@ -130,6 +111,10 @@ with st.expander("Train a model - single run"):
             format="YYYY-MM-DD"
             )
             all_data = st.toggle("Use all data")
+        with cols[2]:
+            temp_min = st.slider("Temperature Window min", min_value=-20, max_value=30, value=0)
+            temp_max = st.slider("Temperature Window max", min_value=-20, max_value=30, value=0)
+            expert_model_temp = st.toggle("Train expert model ? (use temperature window)")
         submitted = st.form_submit_button("Train model")
         if submitted:
             model = TemperatureModel(module_config=config[module_name])
@@ -139,8 +124,11 @@ with st.expander("Train a model - single run"):
             train_timeframe = [str(date) for date in train_timeframe]
             if all_data:
                 train_timeframe = None
+            if expert_model_temp is None:
+                temp_min = None
+                temp_max = None
             with st.spinner("Parameters optimisation in progress..."):
-                model.get_optimal_parameters(train_timeframe=train_timeframe)
+                model.get_optimal_parameters(train_timeframe=train_timeframe, temp_min=temp_min, temp_max=temp_max)
             st.success("Done!")
 
 validation_button = st.button("Validate model")
