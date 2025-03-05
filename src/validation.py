@@ -4,10 +4,7 @@ import json
 def validate_model(train_timeframe, test_timeframe):
     # Initialize the model
     config = json.load(open("config.json", "r"))
-    model = TemperatureModel(P_consigne=2500)
-    model.load_data(config["caussa"])
-    model.preprocess_data() 
-    model.build_features_df()
+    model = TemperatureModel(config["caussa"])
 
     # Optimize the model for the given train_timeframe
     model.get_optimal_parameters(train_timeframe=train_timeframe)

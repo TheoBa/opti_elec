@@ -92,9 +92,6 @@ with st.expander("See models performance"):
     if btn:
         module_name = log_runs.loc[model_index, "module_name"]
         model = TemperatureModel(module_config=config[module_name])
-        model.load_data()
-        model.preprocess_data()
-        model.build_features_df()
         parameters = log_runs.loc[model_index, "parameters"]
         prediction_df = model.predict(parameters)
         model.plot_paintings(parameters)
@@ -125,7 +122,7 @@ with st.expander("Train a model - single run"):
             train_timeframe = [str(date) for date in train_timeframe]
             if all_data:
                 train_timeframe = None
-            if expert_model_temp is None:
+            if not(expert_model_temp):
                 temp_min = None
                 temp_max = None
             with st.spinner("Parameters optimisation in progress..."):

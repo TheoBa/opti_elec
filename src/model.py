@@ -13,6 +13,9 @@ class TemperatureModel:
         self.features_df = None
         self.P_consigne = module_config["P_consigne"]
         self.module_config = module_config
+        self.load_data()
+        self.preprocess_data()
+        self.build_features_df()
 
     def load_data(self):
         for k, v in self.module_config["entities"].items():
