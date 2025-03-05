@@ -43,6 +43,10 @@ class TemperatureModel:
     def cost_function_wrapped_MAE(self, parameters):
         pred_df = self.predict(parameters)
         return get_mae(pred_df)
+    
+    def cost_function_wrapped_custom(self, parameters):
+        pred_df = self.predict(parameters)
+        return get_custom_loss(pred_df)
 
     def predict(self, parameters):
         """
@@ -127,7 +131,7 @@ class TemperatureModel:
             self.pred_df = self.features_df
             
         # opti_func = self.cost_function_wrapped_MAE
-        opti_func = self.cost_function_wrapped_RMSE
+        opti_func = self.cost_function_wrapped_custom
 
         results = optimize_parameters(
             loss_function=opti_func,
@@ -214,15 +218,27 @@ def compute_temperature_int(t, T0, Tlim, R, C):
     return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
 
 def get_rmse(pred_df):
-        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
-        mse = squared_errors.mean()
-        rmse = mse ** 0.5
-        return rmse
+    squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
+    mse = squared_errors.mean()
+    rmse = mse ** 0.5
+    return rmse
 
 def get_mae(pred_df):
-        abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
-        mae = abs_error.mean()
-        return mae
+    abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
+    mae = abs_error.mean()
+    return mae
+
+def get_custom_loss(pred_df):
+    pred_df = (
+        pred_df
+        .assign(
+            hours_minute=lambda df: df["date"].dt.hour*60 + df["date"].dt.minute,
+            squared_errors=lambda df: (df["temperature_int"] - df["T_int_pred"]) ** 2,
+            coef=lambda df: (1 + df["hours_minute"] / 1435 * 5),
+        )
+    )
+    loss = (pred_df["squared_errors"] * pred_df["coef"]).mean()
+    return loss
 
 def select_features_from_temperature_window(features_df, temp_min=None, temp_max=None):
     if (temp_min and temp_max):
