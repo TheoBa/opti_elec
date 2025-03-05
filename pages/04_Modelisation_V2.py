@@ -48,6 +48,11 @@ def get_rmse(pred_df):
         rmse = mse ** 0.5
         return rmse
 
+def get_mae(pred_df):
+        abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
+        mae = abs_error.mean()
+        return mae
+
 def plot_pred(pred_df, parameters):
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -83,10 +88,10 @@ def prepare_logs():
         pd.read_csv("data/logs/runs.csv", sep=',')
         .assign(date=lambda x: pd.to_datetime(x['date']))
         .assign(parameters=lambda x: x[['R', 'C', 'alpha', 'Pvoisin', 'time_shift']].values.tolist())
-        .assign(parameters_str=lambda x: x['parameters'].apply(lambda y: f"R={y[0]}, C={y[1]}, alpha={y[2]}, Pvoisin={y[3]}, delta_t={y[4]}"))
+        .assign(parameters_str=lambda x: x['parameters'].apply(lambda y: f"R={y[0]:.1e}, C={y[1]:.1e}, alpha={y[2]:.1e}, Pvoisin={y[3]:.1e}, delta_t={y[4]:.1e}"))
     )
 
-def get_params_from_model(log_runs, model_name):
+def get_params_from_model(log_runs, module_name):
     df = (
         log_runs[log_runs["module_name"] == module_name].copy()
         .sort_values(by='date', ascending=False)
@@ -106,7 +111,7 @@ with st.expander("See models performance"):
         model.build_features_df()
         btn = st.form_submit_button("Submit")
     if btn:
-        plot_temperatures(features_df=model.features_df)
+        # plot_temperatures(features_df=model.features_df)
         st.markdown(f"### Latest trained model for {module_name}")
         parameters=get_params_from_model(log_runs, module_name)
         prediction_df = model.predict(parameters)

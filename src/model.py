@@ -32,18 +32,13 @@ class TemperatureModel:
             .loc[lambda x: x["date"]> '2025-01-04']
         )
 
-    def cost_function_wrapped(self, parameters):
+    def cost_function_wrapped_RMSE(self, parameters):
         pred_df = self.predict(parameters)
-        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
-        mse = squared_errors.mean()
-        rmse = mse ** 0.5
-        return rmse
+        return get_rmse(pred_df)
     
     def cost_function_wrapped_MAE(self, parameters):
         pred_df = self.predict(parameters)
-        squared_errors = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
-        mae = squared_errors.mean()
-        return mae
+        return get_mae(pred_df)
 
     def predict(self, parameters):
         """
@@ -100,9 +95,14 @@ class TemperatureModel:
     def log_run(self, train_timeframe):
         date = dt.datetime.now()
         params = self.optimal_parameters
+        pred_df = self.predict(params)
         module_name = self.module_config["module_name"]
         row = [date, module_name, train_timeframe] + list(params)
         df = pd.DataFrame([row], columns=["date", "module_name", "train_timeframe", "R", "C", "alpha", "Pvoisin", "time_shift"])
+        df = df.assign(
+            rmse=get_rmse(pred_df),
+            mae=get_mae(pred_df),
+        )
         populate_database(df, "data/logs/runs.csv")
 
     def get_optimal_parameters(self, train_timeframe=None):
@@ -114,7 +114,9 @@ class TemperatureModel:
             self.pred_df = self.select_timeframe(self.features_df, train_timeframe)
         else:
             self.pred_df = self.features_df
+            
         opti_func = self.cost_function_wrapped_MAE
+        # opti_func = self.cost_function_wrapped_RMSE
 
         results = optimize_parameters(
             loss_function=opti_func,
@@ -200,3 +202,14 @@ class TemperatureModel:
 
 def compute_temperature_int(t, T0, Tlim, R, C):
     return Tlim + (T0 - Tlim) * np.exp(-t / (R * C))
+
+def get_rmse(pred_df):
+        squared_errors = (pred_df["temperature_int"] - pred_df["T_int_pred"]) ** 2
+        mse = squared_errors.mean()
+        rmse = mse ** 0.5
+        return rmse
+
+def get_mae(pred_df):
+        abs_error = abs(pred_df["temperature_int"] - pred_df["T_int_pred"])
+        mae = abs_error.mean()
+        return mae
