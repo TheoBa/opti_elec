@@ -9,6 +9,23 @@ from src.optimizer import optimize_parameters
 
 
 class TemperatureModel:
+    """
+    A class to represent a temperature prediction model.
+
+    Attributes:
+        features_df (pd.DataFrame): DataFrame containing features for the model.
+        P_consigne (float): Consigne power value.
+        module_config (dict): Configuration dictionary containing module-specific settings, defined in config.json.
+        temperature_int_df (pd.DataFrame): input DataFrame containing internal temperature data.
+        switch_df (pd.DataFrame): input DataFrame containing switch data.
+        weather_df (pd.DataFrame): input DataFrame containing weather data.
+    Methods:
+        load_data(): Loads input data from CSV files into DataFrames before further processing.
+        preprocess_data(): Preprocesses the input data by cleaning and transforming it into a suitable format.
+        build_features_df(): Builds the features DataFrame by merging and transforming the input DataFrames.
+        predict(): Predicts the internal temperature based on the features DataFrame. Whithout a doubt, the most important method of the class.
+    """
+
     def __init__(self, module_config):
         self.features_df = None
         self.P_consigne = module_config["P_consigne"]

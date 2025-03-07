@@ -23,13 +23,16 @@ ENTITY_IDS_NABU = [
 
 def parse_data_string(data_string: str) -> dict:
     """
-    Convert a JSON string into a dictionary
-    
+    Convert a JSON string into a dictionary.
+
     Args:
-        data_string (str): JSON formatted string containing sensor data
-        
+        data_string (str): JSON formatted string containing sensor data.
+
     Returns:
-        dict: Parsed dictionary containing sensor data
+        dict: Parsed dictionary containing sensor data.
+
+    Raises:
+        ValueError: If the JSON string is invalid.
     """
     try:
         return json.loads(data_string)
@@ -66,10 +69,10 @@ def json_to_df(inputs, column_names):
 def populate_database(df_new: pd.DataFrame, csv_path: str):
     """
     Populate or update a CSV file with new data, avoiding duplicates.
-    
+
     Args:
-        csv_path: Path to the CSV file
-        df_new: New DataFrame to add to the existing data
+        df_new (pd.DataFrame): New DataFrame to add to the existing data.
+        csv_path (str): Path to the CSV file.
     """
     if os.path.exists(csv_path):
         df_old = pd.read_csv(csv_path, sep=",")
@@ -87,7 +90,18 @@ def populate_database(df_new: pd.DataFrame, csv_path: str):
         # If file doesn't exist, save the new DataFrame
         df_new.to_csv(csv_path, index=False)
 
-def get_past_weather_data2(module_config, past_days=5, forecast_days=3):
+def get_weather_data(module_config: dict, past_days: int=5, forecast_days: int=3):
+    """
+    Retrieve past weather data using the Open-Meteo API.
+
+    Args:
+        module_config (dict): Configuration dictionary containing module-specific settings.
+        past_days (int): Number of past days to retrieve weather data for.
+        forecast_days (int): Number of forecast days to retrieve weather data for.
+
+    Returns:
+        pd.DataFrame: DataFrame containing past weather data.
+    """
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -124,9 +138,12 @@ def get_past_weather_data2(module_config, past_days=5, forecast_days=3):
     hourly_dataframe = pd.DataFrame(data = hourly_data)
     return hourly_dataframe
 
-def update_db(module_config):
+def update_db(module_config: dict):
     """
-    Request data from Home Assistant and update the database
+    Request data from Home Assistant and update the database.
+
+    Args:
+        module_config (dict): Configuration dictionary containing module-specific settings.
     """
     for entity, entity_id in module_config["entities"].items():
         if "temperature" in entity:
@@ -142,7 +159,7 @@ def update_db(module_config):
             
     try:
     # weather
-        df = get_past_weather_data2(module_config,past_days=10, forecast_days=3)
+        df = get_weather_data(module_config,past_days=10, forecast_days=3)
         populate_database(df, f"data/{module_config["db_name"]}/weather.csv")
     except Exception as e:
             st.error(f"Error while updating weather database: {e}")

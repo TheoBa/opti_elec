@@ -5,6 +5,7 @@ from src.sandbox import Simulation
 from src.data_loader import update_db
 import json
 import datetime as dt
+import pandas as pd
 from src.utils import prepare_logs
 from src.validation import validate_model
 
@@ -24,25 +25,38 @@ if st.button("update databases"):
     update_db(config["nabu"])
     st.success("Databases updated")
 
-def plot_temperatures(features_df):
-        fig = go.Figure()
-        for c in ['temperature_int', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature']:
-            fig.add_trace(
-                go.Scatter(
-                    x=features_df['date'],
-                    y=features_df[c],
-                    name=c,
-                )
+def plot_temperatures(features_df: pd.DataFrame):
+    """
+    Plot the evolution of different temperature metrics over time.
+
+    Args:
+        features_df (pd.DataFrame): DataFrame containing temperature data.
+    """
+    fig = go.Figure()
+    for c in ['temperature_int', 'temperature_ext', 'all_day_temperature', 'roll5_avg_temperature']:
+        fig.add_trace(
+            go.Scatter(
+                x=features_df['date'],
+                y=features_df[c],
+                name=c,
             )
-            fig.update_layout(
-                title='Temp evolution',
-                xaxis_title='Date',
-                yaxis_title='Temperature (°C)',
-                legend_title='Legend',
-            )
-        st.plotly_chart(fig)
+        )
+        fig.update_layout(
+            title='Temp evolution',
+            xaxis_title='Date',
+            yaxis_title='Temperature (°C)',
+            legend_title='Legend',
+        )
+    st.plotly_chart(fig)
 
 def plot_pred(pred_df, parameters):
+    """
+    Plot the predicted temperatures and other relevant metrics.
+
+    Args:
+        pred_df (pd.DataFrame): DataFrame containing prediction data.
+        parameters (list): List of parameters used in the prediction model.
+    """
     col1, col2 = st.columns([1, 6])
     with col1:
         st.metric("R", "{:.1e}".format(parameters[0]), border=True)
@@ -73,6 +87,16 @@ def plot_pred(pred_df, parameters):
         st.plotly_chart(fig)
 
 def get_params_from_model(log_runs, module_name):
+    """
+    Retrieve the parameters from the most recent model run for a given module.
+
+    Args:
+        log_runs (pd.DataFrame): DataFrame containing log runs.
+        module_name (str): Name of the module for which to retrieve parameters.
+
+    Returns:
+        list: List of parameters from the most recent model run for the specified module.
+    """
     df = (
         log_runs[log_runs["module_name"] == module_name].copy()
         .sort_values(by='date', ascending=False)
@@ -143,6 +167,13 @@ if validation_button:
 
 
 def plot_simu(simu):
+    """
+    Plot the simulation results along with relevant metrics.
+
+    Args:
+        simu (Simulation): Simulation object related to TemperatureModule object 
+        that enables the user to create simulations based on predefined scenarii.
+    """
     pred_df = simu.simulation_df
     parameters = simu.parameters
     
