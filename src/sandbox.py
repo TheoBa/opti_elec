@@ -152,6 +152,12 @@ class Simulation:
                 ],
                 columns=['hour', 'minute', 'thermostat_state']
             )
+        elif heating_scenario == "off":
+            scenario_df = pd.DataFrame([
+                [0, 0, "off"],
+                ],
+                columns=['hour', 'minute', 'thermostat_state']
+            )
         return scenario_df
     
     def compute_scenarios_consumption(self):
