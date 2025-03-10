@@ -26,5 +26,19 @@
         "db_name": "nabu_db",
         "API_TOKEN": "API_TOKEN_NABU",
         "P_consigne": 1800
+    },
+    "chauvigny": {
+        "module_name": "chauvigny",
+        "HA_domain_name": "https://cqgzjyxv5w0cguhhbzz1ofvuigzdx5zd.ui.nabu.casa",
+        "latitude": 48.318141,
+        "longitude": 0.447136,
+        "entities": {
+            "temperature_int": "sensor.capteur_03_temperature",
+            "temperature_ext": "weather.saint_fulgent_des_ormes_temperature",
+            "switch": "switch.switch_chauffage_pac_l1"
+        }, 
+        "db_name": "chauvigny_db",
+        "API_TOKEN": "API_TOKEN_CHAUVIGNY",
+        "P_consigne": 2000
     }
 }

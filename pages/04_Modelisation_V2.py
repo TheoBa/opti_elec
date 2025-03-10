@@ -24,6 +24,9 @@ if st.button("update databases"):
     # Update Nabu's place
     update_db(config["nabu"])
     st.success("Databases updated")
+    # Update Chauvigny's place
+    update_db(config["chauvigny"])
+    st.success("Databases updated")
 
 def plot_temperatures(features_df: pd.DataFrame):
     """
@@ -125,7 +128,7 @@ with st.expander("Train a model - single run"):
     with st.form("Optimal parameters"):
         cols = st.columns([1, 2, 2])
         with cols[0]:
-            module_name = st.selectbox("Which model to train", ["caussa", "nabu"])
+            module_name = st.selectbox("Which model to train", set(config.keys()))
         with cols[1]:
             train_timeframe = st.date_input(
             "Training timeframe",
