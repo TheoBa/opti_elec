@@ -8,7 +8,10 @@ WORKDIR /project_epsilon
 COPY . /project_epsilon
 
 # Install Poetry
-RUN pip install poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - --version 1.1.12
+
+# Configure Poetry to not create a virtual environment
+RUN poetry config virtualenvs.create false
 
 # Install dependencies using Poetry
 RUN poetry install
