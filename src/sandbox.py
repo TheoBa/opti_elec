@@ -9,15 +9,18 @@ import streamlit as st
 # He could then see how his thermal module would behave thanks to metrics and graphs displayed.
 
 class Simulation:
-    def __init__(self, module_config, mode="forecasted", parameters=[7.37e-3, 4e6, 71.8, 104, 4]):
+    def __init__(self, module_config, mode="forecasted", parameters=[7.37e-3, 4e6, 71.8, 104, 4], scenario="normal"):
         self.mode = mode
         self.parameters = parameters
-        self.P_consigne = 2500
+        self.P_consigne = module_config["P_consigne"]
         self.temperature_int_0 = 15
         self.target_temperature = 19
         self.hysteresis = 0.5
         self.simulation_df = None
         self.module_config = module_config
+        self.load_forecasted_data()
+        self.create_simulation_features(heating_scenario=scenario)
+        self.compute_temperature_int()
 
     def load_forecasted_data(self):
         self.forecasted_data_df = (
