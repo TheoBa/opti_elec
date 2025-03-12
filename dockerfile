@@ -20,4 +20,4 @@ EXPOSE 80
 ENV NAME World
 
 # Run app.py when the container launches
-CMD ["poetry", "run", "python", "app.py"]
+CMD ["poetry", "run", "python", "flask_app.py"]
