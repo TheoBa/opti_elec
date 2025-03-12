@@ -107,6 +107,16 @@ def get_params_from_model(log_runs, module_name):
     )
     return df.iloc[0]['parameters']
 
+with st.expander("View historical data"):
+    with st.form("View historical data"):
+        cols = st.columns([1, 2, 2])
+        with cols[1]:
+            module_name = st.selectbox("Select module name", ["caussa", "nabu", "chauvigny"])
+        btn = st.form_submit_button("Submit")
+    if btn:
+        model = TemperatureModel(module_config=config[module_name])
+        plot_temperatures(model.features_df)
+
 with st.expander("See models performance"):
     with st.form("Model perfo"):
         log_runs = prepare_logs()
