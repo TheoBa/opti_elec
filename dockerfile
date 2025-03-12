@@ -1,11 +1,11 @@
 # Use an official Python runtime as a parent image
-FROM python:3.12-slim
+FROM python:3.10-slim
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /project_epsilon
 
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY . /project_epsilon
 
 # Install Poetry
 RUN pip install poetry
