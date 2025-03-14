@@ -49,7 +49,7 @@ def get_json_data(module_config, entity_id="", historic_length=10):
     end_date = "?end_time=" + end_time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     entity_id_query = "&filter_entity_id=" + entity_id + "&minimal_response"
 
-    url = f"{module_config["HA_domain_name"]}/api/history/period/{start_date}{end_date}{entity_id_query}"
+    url = f"{module_config['HA_domain_name']}/api/history/period/{start_date}{end_date}{entity_id_query}"
 
     TOKEN = st.secrets[module_config["API_TOKEN"]]
     headers = {
@@ -160,6 +160,6 @@ def update_db(module_config: dict):
     try:
     # weather
         df = get_weather_data(module_config,past_days=10, forecast_days=3)
-        populate_database(df, f"data/{module_config["db_name"]}/weather.csv")
+        populate_database(df, f"data/{module_config['db_name']}/weather.csv")
     except Exception as e:
             st.error(f"Error while updating weather database: {e}")

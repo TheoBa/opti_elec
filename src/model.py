@@ -36,8 +36,8 @@ class TemperatureModel:
 
     def load_data(self):
         for k, v in self.module_config["entities"].items():
-            setattr(self, f"{k}_df", pd.read_csv(f"data/{self.module_config["db_name"]}/{k}.csv", sep=","))
-        self.weather_df = pd.read_csv(f"data/{self.module_config["db_name"]}/weather.csv", sep=",")
+            setattr(self, f"{k}_df", pd.read_csv(f"data/{self.module_config['db_name']}/{k}.csv", sep=","))
+        self.weather_df = pd.read_csv(f"data/{self.module_config['db_name']}/weather.csv", sep=",")
 
     def preprocess_data(self):
         self.temperature_int_df = prepare_temperature_df(self.temperature_int_df)

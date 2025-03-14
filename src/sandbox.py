@@ -24,7 +24,7 @@ class Simulation:
 
     def load_forecasted_data(self):
         self.forecasted_data_df = (
-            pd.read_csv(f"data/{self.module_config["db_name"]}/weather.csv")
+            pd.read_csv(f"data/{self.module_config['db_name']}/weather.csv")
             .pipe(prepare_weather_df)
             .pipe(self.filter_forecast_timeframe)
             .assign(
