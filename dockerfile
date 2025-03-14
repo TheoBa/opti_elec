@@ -8,19 +8,19 @@ WORKDIR /project_epsilon
 COPY . /project_epsilon
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 - --version 1.1.12
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Add Poetry to the PATH
+ENV PATH="/root/.local/bin:$PATH"
 
 # Configure Poetry to not create a virtual environment
 RUN poetry config virtualenvs.create false
 
 # Install dependencies using Poetry
-RUN poetry install
+RUN poetry install --no-dev
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
-
-# Define environment variable
-ENV NAME World
 
 # Run app.py when the container launches
 CMD ["poetry", "run", "python", "flask_app.py"]
