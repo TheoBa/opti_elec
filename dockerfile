@@ -8,16 +8,18 @@ WORKDIR /project_epsilon
 COPY . /project_epsilon
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+# RUN pip install poetry
+# RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Add Poetry to the PATH
-ENV PATH="/root/.local/bin:$PATH"
+# ENV PATH="$HOME/.local/bin:$PATH"
 
 # Configure Poetry to not create a virtual environment
-RUN poetry config virtualenvs.create false
+# RUN poetry config virtualenvs.create false
 
 # Install dependencies using Poetry
-RUN poetry install --no-dev
+# RUN poetry install --no-dev
+RUN pip install -r requirements.txt
 
 # Make port 80 available to the world outside this container
 EXPOSE 80

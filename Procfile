@@ -1,1 +1,1 @@
-web: poetry run python flask_app.py
+web: gunicorn app:flask_app
