@@ -153,7 +153,7 @@ def update_db(module_config: dict):
         try:
             json_data = get_json_data(module_config, entity_id, historic_length=10)
             df = json_to_df(json_data, column_names=column_names)
-            populate_database(df, f"data/{module_config["db_name"]}/{entity}.csv")
+            populate_database(df, f"data/{module_config['db_name']}/{entity}.csv")
         except Exception as e:
             st.error(f"Error while updating {entity} database: {e}")
             
