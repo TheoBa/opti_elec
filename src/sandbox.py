@@ -136,7 +136,7 @@ class Simulation:
         self.simulation_df = self.features_df.copy()
         self.simulation_df["is_heating"] = pd.Series(is_heating)
         self.simulation_df["Tlim"] = pd.Series(Tlim)
-        self.simulation_df["T_int_pred"] = pd.Series(T_int_pred)
+        self.simulation_df["T_int_pred"] = pd.Series(T_int_pred).round(2)
 
     def build_scenario(self, heating_scenario: str):
         if heating_scenario == "teletravail":
