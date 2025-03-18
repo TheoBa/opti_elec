@@ -56,8 +56,8 @@ def get_parameters():
 
     return jsonify(response)
 
-@app.route('/compute_consomption', methods=['POST'])
-def compute_consomption():
+@app.route('/compute_consumption', methods=['POST'])
+def compute_consumption():
     data = request.json
     module_name = data.get('module_name')
     heating_scenario = data.get('heating_scenario')
