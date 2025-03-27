@@ -15,7 +15,7 @@
     },
     "nabu": {
         "module_name": "nabu",
-        "HA_domain_name": "https://eixg1cxww5gtwlwziox2phscyeuvbuwf.ui.nabu.casa",
+        "HA_domain_name": "https://smart.conetch.com",
         "latitude": 48.411640,
         "longitude": 3.491938,
         "entities": {
